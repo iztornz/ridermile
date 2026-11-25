@@ -635,18 +635,309 @@
         const MAX_IMAGE_DIM = 1600;
 
         // Application State
-        let uploadedImages = [];     // [{ id, name, meta: { riderName, dateStr, timeStr, explicitSeq, photoSeq }, mimeType, base64, dataUrl, width, height }]
+        let uploadedImages = [];     // [{ id, name, meta, mimeType, base64, dataUrl, width, height }]
         let extractedDataCache = []; // [{ id, no, img_name, riderName, dateStr, timeStr, explicitSeq, photoSeq, photoSeqManual, dataUrl, km_read, trip_meter, clock_detected, clock_value, status, confidence, notes, tierUsed, modelUsed, escalated }]
         let activeFilter = 'all';    // 'all' | 'ok' | 'flagged'
-// ... existing code ... -->
+        let isProcessing = false;
+        let stopRequested = false;
+        let activeAbortController = null;
+        let dragCounter = 0;
+        let toastTimer = null;
+
+        // Lightbox State
+        let lightboxMode = 'result'; // 'result' | 'upload'
+        let lightboxIndex = -1;
+        let lightboxRotation = 0;
+        let lightboxContrast = false;
+
+        // DOM Elements
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const toggleKeyVisibilityBtn = document.getElementById('toggleKeyVisibilityBtn');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const syncModelsBtn = document.getElementById('syncModelsBtn');
+        const apiModeSelect = document.getElementById('apiModeSelect');
+        const tier1ModelSelect = document.getElementById('tier1ModelSelect');
+        const tier2Toggle = document.getElementById('tier2Toggle');
+        const tier2SelectRow = document.getElementById('tier2SelectRow');
+        const tier2ModelSelect = document.getElementById('tier2ModelSelect');
+        const configStatus = document.getElementById('configStatus');
+
+        const fileInput = document.getElementById('fileInput');
+        const fileCountBadge = document.getElementById('fileCountBadge');
+        const clearFilesBtn = document.getElementById('clearFilesBtn');
+        const dropZone = document.getElementById('dropZone');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const warningBanner = document.getElementById('warningBanner');
+        const warningText = document.getElementById('warningText');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        const processBtn = document.getElementById('processBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const btnSparkleIcon = document.getElementById('btnSparkleIcon');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+
+        const kpiProcessed = document.getElementById('kpiProcessed');
+        const kpiOk = document.getElementById('kpiOk');
+        const kpiFlagged = document.getElementById('kpiFlagged');
+        const kpiTier2 = document.getElementById('kpiTier2');
+
+        const filterPills = document.querySelectorAll('.filter-pill');
+        const filterCountAll = document.getElementById('filterCountAll');
+        const filterCountOk = document.getElementById('filterCountOk');
+        const filterCountFlagged = document.getElementById('filterCountFlagged');
+
+        const copyRetakeBtn = document.getElementById('copyRetakeBtn');
+        const copyRetakeLabel = document.getElementById('copyRetakeLabel');
+        const exportBtn = document.getElementById('exportBtn');
+        const resultBody = document.getElementById('resultBody');
+        const emptyStateTemplate = document.getElementById('emptyState').cloneNode(true);
+
+        const lightboxModal = document.getElementById('lightboxModal');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        const lightboxSubMeta = document.getElementById('lightboxSubMeta');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+        const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+        const rotateRightBtn = document.getElementById('rotateRightBtn');
+        const contrastToggleBtn = document.getElementById('contrastToggleBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        const lightboxPrevBtn = document.getElementById('lightboxPrevBtn');
+        const lightboxNextBtn = document.getElementById('lightboxNextBtn');
+        const lightboxEditBar = document.getElementById('lightboxEditBar');
+        const lightboxStatusNote = document.getElementById('lightboxStatusNote');
+        const lightboxKmInput = document.getElementById('lightboxKmInput');
+        const lightboxUseTripBtn = document.getElementById('lightboxUseTripBtn');
+
+        const toastBox = document.getElementById('toastBox');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Initialize Lucide icons safely
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
         // ============================================================
-        // 1.5 Filename Metadata Parser & Duplicate Sequence Numbering
+        // 1. Utilities, Persistence & Config Controls
+        // ============================================================
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeDigits(val) {
+            if (val === null || val === undefined) return '';
+            const cleaned = String(val)
+                .replace(/km\.?/gi, '')
+                .replace(/,/g, '')
+                .replace(/[^0-9.]/g, '')
+                .trim();
+            if (!cleaned) return '';
+            // Keep decimals only if meaningful (e.g. Trip 64.1), strip leading zeros on whole numbers
+            if (/^\d+$/.test(cleaned)) {
+                return String(parseInt(cleaned, 10));
+            }
+            const parsed = parseFloat(cleaned);
+            return Number.isNaN(parsed) ? cleaned : String(parsed);
+        }
+
+        function formatKmForCsv(val) {
+            const digits = normalizeDigits(val);
+            return digits ? `${digits} km.` : '';
+        }
+
+        function showToast(msg) {
+            toastMessage.textContent = msg;
+            toastBox.classList.remove('hidden');
+            toastBox.classList.add('flex');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastBox.classList.add('hidden');
+                toastBox.classList.remove('flex');
+            }, 2600);
+        }
+
+        function showWarning(msg) {
+            warningText.textContent = msg;
+            warningBanner.classList.remove('hidden');
+        }
+
+        function hideWarning() {
+            warningBanner.classList.add('hidden');
+        }
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function updateConfigStatusText() {
+            const t1 = tier1ModelSelect.value;
+            const t2 = tier2ModelSelect.value;
+            if (tier2Toggle.checked) {
+                configStatus.innerHTML = `พร้อมใช้งาน 2-Tier: <strong class="text-[#16302b]">${escapeHtml(t1)}</strong> → <strong class="text-[#16302b]">${escapeHtml(t2)}</strong>`;
+            } else {
+                configStatus.innerHTML = `โหมด Single Tier: <strong class="text-[#16302b]">${escapeHtml(t1)}</strong> (ปิดการส่งตรวจซ้ำ Tier 2)`;
+            }
+        }
+
+        function loadSavedPreferences() {
+            try {
+                const savedKey = localStorage.getItem('gemini_api_key');
+                const savedMode = localStorage.getItem('gemini_api_mode');
+                const savedT1 = localStorage.getItem('fleet_odo_tier1_model');
+                const savedT2 = localStorage.getItem('fleet_odo_tier2_model');
+                const savedT2Enabled = localStorage.getItem('fleet_odo_tier2_enabled');
+
+                if (savedKey) apiKeyInput.value = savedKey;
+                if (savedMode && ['interactions', 'generateContent'].includes(savedMode)) {
+                    apiModeSelect.value = savedMode;
+                }
+                if (savedT1 && Array.from(tier1ModelSelect.options).some(o => o.value === savedT1)) {
+                    tier1ModelSelect.value = savedT1;
+                }
+                if (savedT2 && Array.from(tier2ModelSelect.options).some(o => o.value === savedT2)) {
+                    tier2ModelSelect.value = savedT2;
+                }
+                if (savedT2Enabled !== null) {
+                    tier2Toggle.checked = savedT2Enabled === 'true';
+                }
+            } catch (err) {
+                console.warn('Unable to read localStorage:', err);
+            }
+            tier2SelectRow.style.opacity = tier2Toggle.checked ? '1' : '0.45';
+            tier2ModelSelect.disabled = !tier2Toggle.checked;
+            updateConfigStatusText();
+        }
+
+        function savePreferences(showFeedback = false) {
+            try {
+                const key = apiKeyInput.value.trim();
+                if (key) localStorage.setItem('gemini_api_key', key);
+                localStorage.setItem('gemini_api_mode', apiModeSelect.value);
+                localStorage.setItem('fleet_odo_tier1_model', tier1ModelSelect.value);
+                localStorage.setItem('fleet_odo_tier2_model', tier2ModelSelect.value);
+                localStorage.setItem('fleet_odo_tier2_enabled', String(tier2Toggle.checked));
+            } catch (err) {
+                console.warn('Unable to write localStorage:', err);
+            }
+            updateConfigStatusText();
+            if (showFeedback) {
+                const orig = saveKeyBtn.textContent;
+                saveKeyBtn.textContent = 'บันทึกแล้ว';
+                saveKeyBtn.classList.add('text-emerald-700');
+                showToast('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+                setTimeout(() => {
+                    saveKeyBtn.textContent = orig;
+                    saveKeyBtn.classList.remove('text-emerald-700');
+                }, 1600);
+            }
+        }
+
+        loadSavedPreferences();
+
+        saveKeyBtn.addEventListener('click', () => savePreferences(true));
+        apiModeSelect.addEventListener('change', () => savePreferences(false));
+        tier1ModelSelect.addEventListener('change', () => savePreferences(false));
+        tier2ModelSelect.addEventListener('change', () => savePreferences(false));
+
+        tier2Toggle.addEventListener('change', () => {
+            tier2SelectRow.style.opacity = tier2Toggle.checked ? '1' : '0.45';
+            tier2ModelSelect.disabled = !tier2Toggle.checked;
+            savePreferences(false);
+        });
+
+        toggleKeyVisibilityBtn.addEventListener('click', () => {
+            const isHidden = apiKeyInput.type === 'password';
+            apiKeyInput.type = isHidden ? 'text' : 'password';
+            toggleKeyVisibilityBtn.innerHTML = `<i data-lucide="${isHidden ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // Live Model Discovery via GET /v1beta/models
+        syncModelsBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
+            if (!key) {
+                showError('กรุณากรอก Google AI Studio API Key ก่อนกด Sync Models');
+                return;
+            }
+            hideError();
+            syncModelsBtn.disabled = true;
+            configStatus.textContent = 'กำลังดึงรายชื่อโมเดลที่ใช้งานได้จากบัญชีของคุณ...';
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+                if (!res.ok) throw new Error(`Model list HTTP Error: ${res.status}`);
+                const data = await res.json();
+
+                const validModels = (data.models || [])
+                    .filter((m) =>
+                        m.name &&
+                        m.name.includes('gemini') &&
+                        !m.name.includes('embedding') &&
+                        !m.name.includes('tts') &&
+                        !m.name.includes('image') &&
+                        !m.name.includes('live') &&
+                        !m.name.includes('transcribe') &&
+                        !m.name.includes('omni') &&
+                        (m.supportedGenerationMethods || []).includes('generateContent')
+                    )
+                    .map((m) => m.name.replace(/^models\//, ''))
+                    .reverse();
+
+                if (validModels.length === 0) {
+                    throw new Error('ไม่พบโมเดล Gemini สำหรับอ่านภาพใน API Key นี้');
+                }
+
+                const prevT1 = tier1ModelSelect.value;
+                const prevT2 = tier2ModelSelect.value;
+
+                [tier1ModelSelect, tier2ModelSelect].forEach((sel) => {
+                    sel.innerHTML = '';
+                    validModels.forEach((id) => {
+                        const opt = document.createElement('option');
+                        opt.value = id;
+                        opt.textContent = id;
+                        sel.appendChild(opt);
+                    });
+                });
+
+                if (validModels.includes(prevT1)) tier1ModelSelect.value = prevT1;
+                else if (validModels.includes('gemini-3.8-flash')) tier1ModelSelect.value = 'gemini-3.8-flash';
+
+                if (validModels.includes(prevT2)) tier2ModelSelect.value = prevT2;
+                else if (validModels.includes('gemini-4-argon')) tier2ModelSelect.value = 'gemini-4-argon';
+
+                savePreferences(false);
+                configStatus.innerHTML = `ซิงก์สำเร็จ: พบ <strong class="text-[#16302b]">${validModels.length}</strong> โมเดล (${escapeHtml(tier1ModelSelect.value)} → ${escapeHtml(tier2ModelSelect.value)})`;
+                showToast(`ซิงก์โมเดลสำเร็จ ${validModels.length} รุ่น`);
+            } catch (err) {
+                showError('Sync โมเดลไม่สำเร็จ: ' + err.message);
+                updateConfigStatusText();
+            } finally {
+                syncModelsBtn.disabled = false;
+            }
+        });
+
+        // ============================================================
+        // 2. Filename Metadata Parser & Duplicate Sequence Numbering
         // ============================================================
         function isValidDatePair(part1, part2) {
             const a = parseInt(part1, 10);
             const b = parseInt(part2, 10);
             if (a < 1 || b < 1 || a > 31 || b > 31) return false;
-            // Support both DD-MM and MM-DD formats (at least one part must be a valid month 1..12)
             return a <= 12 || b <= 12;
         }
 
@@ -676,7 +967,6 @@
             }
 
             // 1. NEW PRIMARY FORMAT: "11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ"
-            // Leading date (DD-MM-YYYY / MM-DD-YYYY / DD_MM_YY) + optional time (HH-MM-SS) + rider name + optional .suffix
             const leadingRe = /^(\d{2})[-_./](\d{2})[-_./](\d{4}|\d{2})(?:[\s_]+(\d{2})[-_.:](\d{2})(?:[-_.:](\d{2}))?)?[\s_-]*(.+)$/;
             const leadMatch = base.match(leadingRe);
             if (leadMatch && isValidDatePair(leadMatch[1], leadMatch[2])) {
@@ -688,7 +978,6 @@
                 let rest = (leadMatch[7] || '').trim();
                 let explicitSeq = null;
 
-                // Extract optional trailing sequence such as "(2)" or "#2"
                 const seqTrailMatch = rest.match(/^(.*?)(?:\s*\(\s*(\d+)\s*\)|\s*#\s*(\d+))$/);
                 if (seqTrailMatch) {
                     rest = seqTrailMatch[1].trim();
@@ -705,7 +994,7 @@
                 };
             }
 
-            // 2. LEGACY FORMATS (Backward compatible): "นิธิกร ได้พร้อม_021126 (2).jpg" / "rider_A_021126.jpg"
+            // 2. LEGACY FORMATS: "นิธิกร ได้พร้อม_021126 (2).jpg" or "rider_A_021126.jpg"
             const seqPattern = '(?:\\s*(?:\\(\\s*(\\d+)\\s*\\)|#\\s*(\\d+)|[_-]\\s*(\\d+)))?';
 
             const delimitedRe = new RegExp(`^(?:(.*)[\\s_-]+)?(\\d{2})[-_.](\\d{2})[-_.](\\d{4}|\\d{2})${seqPattern}$`);
@@ -738,7 +1027,7 @@
                 };
             }
 
-            // 3. Fallback when no date token exists: still extract trailing (n) or #n
+            // 3. Fallback: no date token found, still detect trailing (n) or #n
             const fallbackSeqRe = /^(.*?)(?:\s*\(\s*(\d+)\s*\)|\s*#\s*(\d+))$/;
             const fbMatch = base.match(fallbackSeqRe);
             if (fbMatch) {
@@ -762,7 +1051,6 @@
             };
         }
 
-        // Automatically assigns "รูปที่ 1", "รูปที่ 2", ... whenever (ชื่อไรเดอร์, วันที่) duplicates
         function buildDuplicateKey(riderName, dateStr) {
             const normRider = String(riderName || '').trim().toLowerCase().replace(/\s+/g, ' ');
             const normDate = String(dateStr || '').trim().toLowerCase();
@@ -770,6 +1058,7 @@
             return `${normRider}||${normDate}`;
         }
 
+        // Auto-assign "รูปที่ 1", "รูปที่ 2", ... whenever (ชื่อไรเดอร์, วันที่) duplicates
         function assignSequenceNumbers(items, isUploadQueue = false) {
             const usedByKey = new Map();
 
@@ -788,14 +1077,12 @@
                 if (!usedByKey.has(key)) usedByKey.set(key, new Set());
                 const usedSet = usedByKey.get(key);
 
-                // Preserve manually edited "รูปที่" values while tracking their numbers
                 if (!isUploadQueue && target.photoSeqManual) {
                     const manualNum = String(target.photoSeq || '').match(/(\d+)/);
                     if (manualNum) usedSet.add(parseInt(manualNum[1], 10));
                     return;
                 }
 
-                // Use explicit filename sequence if provided and not yet taken, otherwise pick next available 1, 2, 3...
                 let chosen = null;
                 if (target.explicitSeq && !usedSet.has(target.explicitSeq)) {
                     chosen = target.explicitSeq;
@@ -810,11 +1097,212 @@
             });
         }
 
-        function formatKmForCsv(val) {
-            const digits = normalizeDigits(val);
-            return digits ? `${digits} km.` : '';
+        // ============================================================
+        // 3. Batch Upload (Max 25 Images) & Canvas Preprocessing
+        // ============================================================
+        function resolveMimeType(file) {
+            if (['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return file.type;
+            const name = (file.name || '').toLowerCase();
+            if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+            if (name.endsWith('.png')) return 'image/png';
+            if (name.endsWith('.webp')) return 'image/webp';
+            return null;
         }
-// ... existing code ... -->
+
+        function loadAndResizeImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์ภาพได้'));
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('ไฟล์ภาพเสียหายหรือไม่รองรับ'));
+                    img.onload = () => {
+                        let w = img.naturalWidth || img.width;
+                        let h = img.naturalHeight || img.height;
+                        const maxSide = Math.max(w, h);
+                        if (maxSide > MAX_IMAGE_DIM) {
+                            const scale = MAX_IMAGE_DIM / maxSide;
+                            w = Math.round(w * scale);
+                            h = Math.round(h * scale);
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                        const base64 = dataUrl.split(',')[1];
+                        resolve({
+                            mimeType: 'image/jpeg',
+                            dataUrl,
+                            base64,
+                            width: w,
+                            height: h
+                        });
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Contrast + Unsharp-mask style sharpen via Canvas for Tier 2 Escalation
+        function createEnhancedImageForTier2(dataUrl) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onerror = () => resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                img.onload = () => {
+                    try {
+                        const w = img.naturalWidth || img.width;
+                        const h = img.naturalHeight || img.height;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.filter = 'contrast(1.38) brightness(1.06)';
+                        ctx.drawImage(img, 0, 0, w, h);
+                        ctx.filter = 'none';
+
+                        // Lightweight 3x3 sharpening kernel on pixel data
+                        const srcData = ctx.getImageData(0, 0, w, h);
+                        const dstData = ctx.createImageData(w, h);
+                        const src = srcData.data;
+                        const dst = dstData.data;
+                        const kernel = [0, -0.5, 0, -0.5, 3, -0.5, 0, -0.5, 0];
+
+                        for (let y = 1; y < h - 1; y++) {
+                            for (let x = 1; x < w - 1; x++) {
+                                const idx = (y * w + x) * 4;
+                                for (let c = 0; c < 3; c++) {
+                                    let val = 0;
+                                    let k = 0;
+                                    for (let ky = -1; ky <= 1; ky++) {
+                                        for (let kx = -1; kx <= 1; kx++) {
+                                            val += src[((y + ky) * w + (x + kx)) * 4 + c] * kernel[k++];
+                                        }
+                                    }
+                                    dst[idx + c] = Math.max(0, Math.min(255, val));
+                                }
+                                dst[idx + 3] = 255;
+                            }
+                        }
+                        ctx.putImageData(dstData, 0, 0);
+                        const enhancedUrl = canvas.toDataURL('image/jpeg', 0.94);
+                        resolve({ base64: enhancedUrl.split(',')[1], mimeType: 'image/jpeg' });
+                    } catch (e) {
+                        resolve({ base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+                    }
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        // Prevent browser from navigating away on stray drops
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((evt) => {
+            window.addEventListener(evt, (e) => e.preventDefault(), false);
+        });
+
+        dropZone.addEventListener('click', () => {
+            if (!isProcessing) fileInput.click();
+        });
+
+        dropZone.addEventListener('keydown', (e) => {
+            if (!isProcessing && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFiles(e.target.files);
+                fileInput.value = '';
+            }
+        });
+
+        dropZone.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isProcessing) return;
+            dragCounter++;
+            dropZone.classList.add('drag-active');
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isProcessing) return;
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = Math.max(0, dragCounter - 1);
+            if (dragCounter === 0) dropZone.classList.remove('drag-active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = 0;
+            dropZone.classList.remove('drag-active');
+            if (isProcessing) return;
+            const dropped = e.dataTransfer && e.dataTransfer.files;
+            if (dropped && dropped.length > 0) {
+                handleFiles(dropped);
+            }
+        });
+
+        clearFilesBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isProcessing) return;
+            uploadedImages = [];
+            extractedDataCache = [];
+            hideWarning();
+            hideError();
+            syncUploadUI();
+            renderTable();
+            updateKPIs();
+        });
+
+        async function handleFiles(fileList) {
+            const incoming = Array.from(fileList);
+            if (incoming.length === 0) return;
+
+            hideError();
+            hideWarning();
+
+            const validFiles = [];
+            let unsupportedCount = 0;
+            incoming.forEach((f) => {
+                if (resolveMimeType(f)) validFiles.push(f);
+                else unsupportedCount++;
+            });
+
+            const remainingSlots = MAX_FILES - uploadedImages.length;
+            const warnings = [];
+
+            if (unsupportedCount > 0) {
+                warnings.push(`ข้ามไฟล์ที่ไม่รองรับ ${unsupportedCount} ไฟล์ (รองรับเฉพาะ JPG, PNG, WEBP)`);
+            }
+
+            if (remainingSlots <= 0) {
+                showWarning(`คิวอัปโหลดเต็มแล้ว (สูงสุด ${MAX_FILES} รูป/รอบ) กรุณาลบบางรูปหรือกดล้างทั้งหมดก่อนเพิ่มใหม่`);
+                return;
+            }
+
+            let accepted = validFiles;
+            if (validFiles.length > remainingSlots) {
+                const droppedCount = validFiles.length - remainingSlots;
+                accepted = validFiles.slice(0, remainingSlots);
+                warnings.push(`รองรับสูงสุด ${MAX_FILES} รูป/รอบ — นำเข้าเพิ่ม ${accepted.length} รูป และตัดออก ${droppedCount} รูป`);
+            }
+
+            if (warnings.length > 0) {
+                showWarning(warnings.join(' · '));
+            }
+
             for (const file of accepted) {
                 try {
                     const processed = await loadAndResizeImage(file);
@@ -833,20 +1321,386 @@
             syncUploadUI();
             updateKPIs();
         }
-// ... existing code ... -->
+
+        function syncUploadUI() {
+            fileCountBadge.textContent = `${uploadedImages.length} / ${MAX_FILES} รูป`;
+
+            if (uploadedImages.length === 0) {
+                imagePreviewContainer.innerHTML = '';
+                imagePreviewContainer.classList.add('hidden');
+                imagePreviewContainer.classList.remove('flex');
+                uploadPlaceholder.classList.remove('hidden');
+                clearFilesBtn.classList.add('hidden');
+                processBtn.disabled = true;
+                return;
+            }
+
+            uploadPlaceholder.classList.add('hidden');
+            imagePreviewContainer.classList.remove('hidden');
+            imagePreviewContainer.classList.add('flex');
+            clearFilesBtn.classList.remove('hidden');
+            processBtn.disabled = isProcessing;
+
+            imagePreviewContainer.innerHTML = uploadedImages.map((img, idx) => {
+                const metaLine = [img.meta.riderName, img.meta.dateStr, img.meta.photoSeq].filter(Boolean).join(' · ');
+                return `
+                    <div class="relative group w-[84px] flex flex-col items-center">
+                        <div class="relative w-20 h-20">
+                            <img data-upload-idx="${idx}" src="${img.dataUrl}" title="${escapeHtml(img.name)}" class="upload-thumb w-20 h-20 object-cover rounded-2xl border border-white/90 shadow-sm bg-white cursor-zoom-in hover:scale-[1.03] transition-transform">
+                            <button type="button" data-remove-id="${img.id}" aria-label="ลบรูปนี้" class="remove-thumb-btn absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center shadow hover:bg-rose-600 transition-colors">×</button>
+                            <span class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-[#16302b]/80 text-white text-[9px] font-metric font-bold">${escapeHtml(img.meta.photoSeq)}</span>
+                        </div>
+                        <span class="block text-[10px] truncate w-20 mt-1 text-center font-semibold text-[#16302b]" title="${escapeHtml(metaLine || img.name)}">${escapeHtml(img.meta.riderName || img.name)}</span>
+                        <span class="block text-[9px] truncate w-20 text-center font-metric text-[#56736b]">${escapeHtml(img.meta.dateStr || '-')}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Bind per-image zoom
+            imagePreviewContainer.querySelectorAll('.upload-thumb').forEach((el) => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(e.currentTarget.dataset.uploadIdx, 10);
+                    if (!Number.isNaN(idx)) openLightbox('upload', idx);
+                });
+            });
+
             // Bind per-image remove
-            imagePreviewContainer.querySelectorAll('.remove-thumb-btn').forEach(btn => {
+            imagePreviewContainer.querySelectorAll('.remove-thumb-btn').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (isProcessing) return;
                     const idToRemove = e.currentTarget.dataset.removeId;
-                    uploadedImages = uploadedImages.filter(img => img.id !== idToRemove);
+                    uploadedImages = uploadedImages.filter((img) => img.id !== idToRemove);
                     assignSequenceNumbers(uploadedImages, true);
                     syncUploadUI();
                     updateKPIs();
                 });
             });
-// ... existing code ... -->
+        }
+
+        // ============================================================
+        // 4. Gemini 2-Tier OCR Engine & Prompt Rules
+        // ============================================================
+        function buildOdometerPrompt(isTier2) {
+            const tier2Prefix = isTier2
+                ? 'SECOND-PASS DEEP VERIFICATION: The previous fast model had low confidence or detected glare/obstruction/trip-only display. Carefully inspect every 7-segment stroke or mechanical drum edge pixel-by-pixel before answering.\n\n'
+                : '';
+
+            return `${tier2Prefix}You are a precision vehicle dashboard OCR specialist for motorcycle and commercial fleet logistics in Thailand (Honda Wave, Honda Click, Honda Scoopy, Yamaha NMAX, Yamaha Aerox, pickups, vans).
+Examine this dashboard photo carefully and extract the TOTAL ODOMETER (ODO) distance reading.
+
+STRICT DOMAIN RULES:
+1. ROTATED PHOTOS: Photos may be rotated 90°, 180°, or 270° (sideways/upside-down). Mentally orient the dashboard upright before reading digits.
+2. YAMAHA NMAX / AEROX CLOCK TRAP (CRITICAL): On Yamaha NMAX/Aerox digital clusters, the small number at the TOP of the LCD (e.g., "6 35", "4 11", often with a gap or colon between hour and minute) is the CLOCK, NEVER the odometer! Always set "clock_detected": true and "clock_value" to that time (e.g., "6:35"). The distance counter is ONLY in the LOWER section labeled "ODO" or "TRIP 1" / "TRIP 2".
+3. STRICT ODO vs TRIP SEPARATION: NEVER place a TRIP A / TRIP B / TRIP 1 / TRIP 2 reading into the "odometer" field!
+   - If the dashboard ONLY displays TRIP (and no total ODO is shown), set "odometer" to "", put the trip reading in "trip_meter" (e.g., "64.1"), set "status" to "TRIP_ONLY", set "confidence" to "low", and write a short Thai note (e.g., "หน้าปัดค้างโหมด TRIP ไม่พบเลข ODO ให้ไรเดอร์กดปุ่มสลับเป็น ODO แล้วถ่ายใหม่").
+   - Ignore speed ("km/h"), RPM, fuel range ("RANGE"), clock time, and camera date/time watermarks stamped in corners of the photo.
+4. PHYSICAL OBSTRUCTIONS & GLARE: If a phone mount, magnetic plate, sticker, reflection, or shadow blocks part of the ODO digits so any digit is ambiguous:
+   - Set "status" to "OBSTRUCTED", set "confidence" to "low", put your best cautious estimate in "odometer" (or "" if unreadable), and explain clearly in Thai in "notes" (e.g., "แท่นแม่เหล็กบังขอบบนของจอ LCD ควรให้ไรเดอร์ถ่ายใหม่หรือตรวจยืนยัน").
+5. ANALOG / MECHANICAL ODOMETERS (Honda Wave, Dream, etc.): On 6-drum mechanical odometers with 5 dark/black integer drums on the left and 1 contrasting white or red rightmost tenths drum (0.1 km — for example black "52594" + white "1"), you MUST EXCLUDE the rightmost white/red tenths digit so "odometer" is ONLY the 5-digit integer distance ("52594", NOT "525941"), and note "ตัดหลักทศนิยมไมล์เข็มออกแล้ว" in Thai. Minor scratches on the clear plastic lens do NOT make it unreadable if all integer digits can be read clearly (set "status" to "OK").
+6. FORMATTING: Return "odometer" as digits ONLY (no commas, no spaces, no "km", no leading zeros — e.g., "52594") or "". If completely unreadable, set "status" to "UNREADABLE", "confidence" to "low", "odometer" to "", and explain briefly in Thai in "notes". If clean and crystal clear, set "status" to "OK", "confidence" to "high", and "notes" to "".`;
+        }
+
+        function extractInteractionsText(result) {
+            if (typeof result.output_text === 'string' && result.output_text.trim()) {
+                return result.output_text;
+            }
+            if (Array.isArray(result.steps)) {
+                const chunks = [];
+                for (const step of result.steps) {
+                    if (step.type === 'model_output') {
+                        if (typeof step.text === 'string') chunks.push(step.text);
+                        else if (typeof step.content === 'string') chunks.push(step.content);
+                        else if (Array.isArray(step.content)) {
+                            step.content.forEach((part) => {
+                                if (typeof part.text === 'string') chunks.push(part.text);
+                            });
+                        }
+                    }
+                }
+                if (chunks.length > 0) return chunks.join('');
+            }
+            if (Array.isArray(result.outputs)) {
+                const textOut = result.outputs.find((o) => o.type === 'text' && o.text);
+                if (textOut) return textOut.text;
+            }
+            return null;
+        }
+
+        function parseJsonSafely(rawText) {
+            const cleaned = String(rawText || '')
+                .replace(/^```(?:json)?\s*/i, '')
+                .replace(/\s*```$/i, '')
+                .trim();
+            return JSON.parse(cleaned);
+        }
+
+        function normalizeReadingObject(raw) {
+            const allowedStatuses = ['OK', 'TRIP_ONLY', 'OBSTRUCTED', 'UNREADABLE'];
+            const allowedConf = ['high', 'medium', 'low'];
+
+            const odometer = normalizeDigits(raw && raw.odometer);
+            const tripMeter = normalizeDigits(raw && raw.trip_meter);
+            const clockDetected = Boolean(raw && raw.clock_detected);
+            const clockValue = raw && raw.clock_value ? String(raw.clock_value).trim() : '';
+            let status = String((raw && raw.status) || '').toUpperCase().trim();
+            if (!allowedStatuses.includes(status)) {
+                if (!odometer && tripMeter) status = 'TRIP_ONLY';
+                else if (!odometer) status = 'UNREADABLE';
+                else status = 'OK';
+            }
+            let confidence = String((raw && raw.confidence) || 'medium').toLowerCase().trim();
+            if (!allowedConf.includes(confidence)) confidence = 'medium';
+
+            // Enforce consistency: empty odometer can never be OK/high
+            if (!odometer && status === 'OK') {
+                status = tripMeter ? 'TRIP_ONLY' : 'UNREADABLE';
+                confidence = 'low';
+            }
+
+            return {
+                odometer,
+                trip_meter: tripMeter,
+                clock_detected: clockDetected,
+                clock_value: clockValue,
+                status,
+                confidence,
+                notes: raw && raw.notes ? String(raw.notes).trim() : ''
+            };
+        }
+
+        function shouldEscalateToTier2(reading) {
+            if (!reading) return true;
+            if (!reading.odometer) return true;
+            if (reading.confidence !== 'high') return true;
+            if (reading.status === 'OBSTRUCTED' || reading.status === 'UNREADABLE') return true;
+            return false;
+        }
+
+        async function callGeminiSinglePass({ base64, mimeType, apiKey, model, mode, isTier2, signal }) {
+            const prompt = buildOdometerPrompt(isTier2);
+
+            const odoJsonSchema = {
+                type: 'object',
+                properties: {
+                    odometer: { type: 'string', description: 'Total ODO digits only without commas/units, or empty string if missing/unreadable' },
+                    trip_meter: { type: 'string', description: 'TRIP A/B/1/2 numeric value if visible, else empty string' },
+                    clock_detected: { type: 'boolean', description: 'True if a dashboard clock (such as Yamaha NMAX top clock) is visible' },
+                    clock_value: { type: 'string', description: 'Clock time string if detected, else empty string' },
+                    status: { type: 'string', enum: ['OK', 'TRIP_ONLY', 'OBSTRUCTED', 'UNREADABLE'] },
+                    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+                    notes: { type: 'string', description: 'Short Thai explanation if flagged or analog tenths removed, else empty string' }
+                },
+                required: ['odometer', 'trip_meter', 'clock_detected', 'clock_value', 'status', 'confidence', 'notes']
+            };
+
+            const maxRetries = 3;
+            const retryDelays = [3500, 7500, 14000];
+            let lastError = null;
+            let disableThinkingFallback = false;
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                if (stopRequested) throw new Error('ABORTED');
+
+                try {
+                    let response;
+
+                    if (mode === 'interactions') {
+                        const payload = {
+                            model,
+                            store: false,
+                            input: [
+                                { type: 'text', text: prompt },
+                                { type: 'image', data: base64, mime_type: mimeType }
+                            ],
+                            response_format: {
+                                type: 'text',
+                                mime_type: 'application/json',
+                                schema: odoJsonSchema
+                            }
+                        };
+
+                        if (isTier2 && !disableThinkingFallback && model.includes('gemini-4')) {
+                            payload.generation_config = { thinking_level: 'medium' };
+                        }
+
+                        response = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-goog-api-key': apiKey,
+                                'Api-Revision': '2026-05-20'
+                            },
+                            body: JSON.stringify(payload),
+                            signal
+                        });
+
+                        // Fallback gracefully if a specific model rejects thinking_level
+                        if (!response.ok && response.status === 400 && isTier2 && !disableThinkingFallback) {
+                            disableThinkingFallback = true;
+                            continue;
+                        }
+                    } else {
+                        const genPayload = {
+                            contents: [{
+                                role: 'user',
+                                parts: [
+                                    { text: prompt },
+                                    { inlineData: { mimeType, data: base64 } }
+                                ]
+                            }],
+                            generationConfig: {
+                                responseMimeType: 'application/json',
+                                responseSchema: {
+                                    type: 'OBJECT',
+                                    properties: {
+                                        odometer: { type: 'STRING' },
+                                        trip_meter: { type: 'STRING' },
+                                        clock_detected: { type: 'BOOLEAN' },
+                                        clock_value: { type: 'STRING' },
+                                        status: { type: 'STRING', enum: ['OK', 'TRIP_ONLY', 'OBSTRUCTED', 'UNREADABLE'] },
+                                        confidence: { type: 'STRING', enum: ['high', 'medium', 'low'] },
+                                        notes: { type: 'STRING' }
+                                    },
+                                    required: ['odometer', 'trip_meter', 'clock_detected', 'clock_value', 'status', 'confidence', 'notes']
+                                }
+                            }
+                        };
+
+                        response = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(genPayload),
+                                signal
+                            }
+                        );
+                    }
+
+                    if (!response.ok) {
+                        if (response.status === 429) throw new Error('429');
+                        const errText = await response.text().catch(() => '');
+                        throw new Error(`HTTP ${response.status} (${model}): ${errText.slice(0, 180)}`);
+                    }
+
+                    const result = await response.json();
+                    const textContent = mode === 'interactions'
+                        ? extractInteractionsText(result)
+                        : result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (!textContent) throw new Error('โมเดลส่งผลลัพธ์ว่างเปล่า');
+                    return normalizeReadingObject(parseJsonSafely(textContent));
+
+                } catch (err) {
+                    if (err.name === 'AbortError' || err.message === 'ABORTED' || stopRequested) {
+                        throw new Error('ABORTED');
+                    }
+                    lastError = err;
+                    if (attempt < maxRetries - 1) {
+                        const waitMs = err.message === '429' ? 18000 : retryDelays[attempt];
+                        if (err.message === '429') {
+                            btnText.textContent = `ติด Rate Limit (429) บน ${model} — พัก 18 วิ...`;
+                        }
+                        await sleep(waitMs);
+                    }
+                }
+            }
+
+            if (lastError && lastError.message === '429') {
+                throw new Error(`HTTP 429 บน ${model}: โควตา RPM/RPD เต็ม แนะนำให้สลับ Tier 1 เป็น gemini-3.5-flash-lite`);
+            }
+            throw lastError;
+        }
+
+        // Batch Execution Handler
+        stopBtn.addEventListener('click', () => {
+            if (!isProcessing) return;
+            stopRequested = true;
+            if (activeAbortController) {
+                activeAbortController.abort();
+            }
+            btnText.textContent = 'กำลังหยุดการประมวลผล...';
+        });
+
+        processBtn.addEventListener('click', async () => {
+            const currentApiKey = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
+            const tier1Model = tier1ModelSelect.value;
+            const tier2Model = tier2ModelSelect.value;
+            const useTier2 = tier2Toggle.checked;
+            const apiMode = apiModeSelect.value;
+
+            if (!currentApiKey) {
+                showError('ยังไม่ได้ใส่ API Key กรุณาวาง Google AI Studio API Key ในกล่อง Engine Configuration ก่อนครับ');
+                return;
+            }
+            if (uploadedImages.length === 0) return;
+
+            savePreferences(false);
+            hideError();
+            setProcessingUI(true);
+
+            extractedDataCache = [];
+            activeFilter = 'all';
+            syncFilterPillStyles();
+            renderTable();
+            updateKPIs();
+
+            const baseCooldownMs = tier1Model.includes('lite') ? 3200 : 6500;
+
+            try {
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    if (stopRequested) break;
+
+                    const imgObj = uploadedImages[i];
+                    activeAbortController = new AbortController();
+
+                    btnText.textContent = `Tier 1 · รูปที่ ${i + 1}/${uploadedImages.length} (${tier1Model})...`;
+
+                    let finalReading = await callGeminiSinglePass({
+                        base64: imgObj.base64,
+                        mimeType: imgObj.mimeType,
+                        apiKey: currentApiKey,
+                        model: tier1Model,
+                        mode: apiMode,
+                        isTier2: false,
+                        signal: activeAbortController.signal
+                    });
+
+                    let tierUsed = 'T1';
+                    let modelUsed = tier1Model;
+                    let escalated = false;
+
+                    // Tier 2 Auto-Escalation when needed
+                    if (!stopRequested && useTier2 && shouldEscalateToTier2(finalReading)) {
+                        btnText.textContent = `Tier 2 · ตรวจซ้ำรูปที่ ${i + 1}/${uploadedImages.length} (${tier2Model})...`;
+                        try {
+                            const enhanced = await createEnhancedImageForTier2(imgObj.dataUrl);
+                            const tier2Reading = await callGeminiSinglePass({
+                                base64: enhanced.base64,
+                                mimeType: enhanced.mimeType,
+                                apiKey: currentApiKey,
+                                model: tier2Model,
+                                mode: apiMode,
+                                isTier2: true,
+                                signal: activeAbortController.signal
+                            });
+
+                            finalReading = tier2Reading;
+                            tierUsed = 'T2';
+                            modelUsed = tier2Model;
+                            escalated = true;
+                        } catch (t2Err) {
+                            if (t2Err.message === 'ABORTED' || stopRequested) throw t2Err;
+                            // Graceful non-blocking fallback to Tier 1 reading
+                            const fallbackNote = `Tier 2 (${tier2Model}) ไม่พร้อมใช้งาน — ใช้ผล Tier 1 แทน`;
+                            finalReading.notes = finalReading.notes
+                                ? `${finalReading.notes} · ${fallbackNote}`
+                                : fallbackNote;
+                        }
+                    }
+
                     const meta = imgObj.meta || parseFilenameMeta(imgObj.name);
                     extractedDataCache.push({
                         id: imgObj.id,
@@ -875,11 +1729,157 @@
                     assignSequenceNumbers(extractedDataCache, false);
                     renderTable();
                     updateKPIs();
-// ... existing code ... -->
-5. ANALOG / MECHANICAL ODOMETERS (Honda Wave, Dream, etc.): On 6-drum mechanical odometers with 5 dark/black integer drums on the left and 1 contrasting white or red rightmost tenths drum (0.1 km — for example black "52594" + white "1"), you MUST EXCLUDE the rightmost white/red tenths digit so "odometer" is ONLY the 5-digit integer distance ("52594", NOT "525941"), and note "ตัดหลักทศนิยมไมล์เข็มออกแล้ว" in Thai. Minor scratches on the clear plastic lens do NOT make it unreadable if all integer digits can be read clearly (set "status" to "OK").
-6. FORMATTING: Return "odometer" as digits ONLY (no commas, no spaces, no "km", no leading zeros — e.g., "52594") or "". If completely unreadable, set "status" to "UNREADABLE", "confidence" to "low", "odometer" to "", and explain briefly in Thai in "notes". If clean and crystal clear, set "status" to "OK", "confidence" to "high", and "notes" to "".`;
+
+                    if (i < uploadedImages.length - 1 && !stopRequested) {
+                        btnText.textContent = `พักรอบ (${(baseCooldownMs / 1000).toFixed(1)} วิ) ป้องกัน Rate Limit...`;
+                        await sleep(baseCooldownMs);
+                    }
+                }
+
+                if (stopRequested) {
+                    showWarning(`หยุดการประมวลผลกลางคัน — อ่านเสร็จแล้ว ${extractedDataCache.length} จาก ${uploadedImages.length} รูป`);
+                } else {
+                    showToast(`อ่านเลขไมล์ครบ ${extractedDataCache.length} รูปเรียบร้อยแล้ว`);
+                }
+            } catch (err) {
+                if (err.message === 'ABORTED') {
+                    showWarning(`หยุดการประมวลผล — บันทึกผลที่อ่านแล้ว ${extractedDataCache.length} รูป`);
+                } else {
+                    showError(err.message);
+                    console.error(err);
+                }
+            } finally {
+                activeAbortController = null;
+                setProcessingUI(false);
+                updateKPIs();
+            }
+        });
+
+        function setProcessingUI(running) {
+            isProcessing = running;
+            if (running) stopRequested = false;
+
+            processBtn.disabled = running || uploadedImages.length === 0;
+            fileInput.disabled = running;
+            clearFilesBtn.disabled = running;
+            syncModelsBtn.disabled = running;
+
+            if (running) {
+                btnSparkleIcon.classList.add('hidden');
+                btnSpinner.classList.remove('hidden');
+                stopBtn.classList.remove('hidden');
+            } else {
+                btnSparkleIcon.classList.remove('hidden');
+                btnSpinner.classList.add('hidden');
+                btnText.textContent = 'เริ่มอ่านเลขไมล์ด้วย AI';
+                stopBtn.classList.add('hidden');
+            }
         }
-// ... existing code ... -->
+
+        // ============================================================
+        // 5. KPIs, Filtering, Verification Table & Ops Actions
+        // ============================================================
+        function isRowOk(item) {
+            return item.status === 'OK' && Boolean(normalizeDigits(item.km_read));
+        }
+
+        function updateKPIs() {
+            const totalUploaded = uploadedImages.length;
+            const totalRead = extractedDataCache.length;
+            const okCount = extractedDataCache.filter(isRowOk).length;
+            const flaggedCount = totalRead - okCount;
+            const tier2Count = extractedDataCache.filter((r) => r.escalated).length;
+
+            kpiProcessed.textContent = `${totalRead} / ${totalUploaded}`;
+            kpiOk.textContent = String(okCount);
+            kpiFlagged.textContent = String(flaggedCount);
+            kpiTier2.textContent = String(tier2Count);
+
+            filterCountAll.textContent = String(totalRead);
+            filterCountOk.textContent = String(okCount);
+            filterCountFlagged.textContent = String(flaggedCount);
+
+            exportBtn.disabled = totalRead === 0;
+            copyRetakeBtn.disabled = flaggedCount === 0;
+            copyRetakeLabel.textContent = flaggedCount > 0
+                ? `คัดลอกแจ้งถ่ายใหม่ (${flaggedCount})`
+                : 'คัดลอกแจ้งถ่ายใหม่';
+        }
+
+        function syncFilterPillStyles() {
+            filterPills.forEach((pill) => {
+                const isActive = pill.dataset.filter === activeFilter;
+                pill.classList.toggle('filter-active', isActive);
+            });
+        }
+
+        filterPills.forEach((pill) => {
+            pill.addEventListener('click', () => {
+                activeFilter = pill.dataset.filter;
+                syncFilterPillStyles();
+                renderTable();
+            });
+        });
+
+        function getKmInputClass(item) {
+            if (isRowOk(item)) return 'input-ok';
+            if (item.status === 'UNREADABLE' || !normalizeDigits(item.km_read)) return 'input-danger';
+            return 'input-warn';
+        }
+
+        function getStatusPillHtml(status) {
+            if (status === 'OK') {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">OK · ผ่าน</span>`;
+            }
+            if (status === 'TRIP_ONLY') {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">TRIP เท่านั้น</span>`;
+            }
+            if (status === 'OBSTRUCTED') {
+                return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">จอโดนบัง / มัว</span>`;
+            }
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">อ่านไม่ได้</span>`;
+        }
+
+        function getTierBadgeHtml(item) {
+            if (item.escalated) {
+                return `<span title="${escapeHtml(item.modelUsed)}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-bold bg-sky-100 text-sky-800 border border-sky-200">T2</span>`;
+            }
+            return `<span title="${escapeHtml(item.modelUsed)}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-semibold bg-teal-50 text-teal-700 border border-teal-200/80">T1</span>`;
+        }
+
+        function renderTable() {
+            resultBody.innerHTML = '';
+
+            if (extractedDataCache.length === 0) {
+                resultBody.appendChild(emptyStateTemplate.cloneNode(true));
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            const filteredRows = extractedDataCache
+                .map((item, idx) => ({ item, idx }))
+                .filter(({ item }) => {
+                    if (activeFilter === 'ok') return isRowOk(item);
+                    if (activeFilter === 'flagged') return !isRowOk(item);
+                    return true;
+                });
+
+            if (filteredRows.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="7" class="px-6 py-16 text-center text-xs font-semibold text-[#56736b]">
+                        ไม่มีรายการในตัวกรองนี้
+                    </td>
+                `;
+                resultBody.appendChild(tr);
+                return;
+            }
+
+            filteredRows.forEach(({ item, idx }) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/45 transition-colors';
+
+                const showTripQuickBtn = Boolean(item.trip_meter) && (!normalizeDigits(item.km_read) || item.status === 'TRIP_ONLY');
                 const clockChip = item.clock_detected
                     ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-semibold bg-sky-100 text-sky-800 border border-sky-200">Clock${item.clock_value ? ' ' + escapeHtml(item.clock_value) : ''}</span>`
                     : '';
@@ -931,7 +1931,7 @@
             });
 
             // Bind inline metadata edits (riderName, dateStr, photoSeq)
-            resultBody.querySelectorAll('.meta-edit').forEach(input => {
+            resultBody.querySelectorAll('.meta-edit').forEach((input) => {
                 input.addEventListener('input', (e) => {
                     const i = parseInt(e.target.dataset.resIdx, 10);
                     const field = e.target.dataset.field;
@@ -947,7 +1947,7 @@
                         }
                         // Recalculate duplicate (ชื่อไรเดอร์, วันที่) sequence numbers live without losing cursor focus
                         assignSequenceNumbers(extractedDataCache, false);
-                        resultBody.querySelectorAll('input[data-field="photoSeq"]').forEach(seqInput => {
+                        resultBody.querySelectorAll('input[data-field="photoSeq"]').forEach((seqInput) => {
                             const rowIdx = parseInt(seqInput.dataset.resIdx, 10);
                             if (!Number.isNaN(rowIdx) && extractedDataCache[rowIdx]) {
                                 const newSeq = extractedDataCache[rowIdx].photoSeq;
@@ -959,13 +1959,103 @@
                     }
                 });
             });
-// ... existing code ... -->
+
+            // Bind inline km_read edits
+            resultBody.querySelectorAll('.km-edit').forEach((input) => {
+                input.addEventListener('input', (e) => {
+                    const i = parseInt(e.target.dataset.resIdx, 10);
+                    if (Number.isNaN(i) || !extractedDataCache[i]) return;
+                    const cleanVal = e.target.value.trim();
+                    extractedDataCache[i].km_read = cleanVal;
+                    if (normalizeDigits(cleanVal)) {
+                        extractedDataCache[i].status = 'OK';
+                        extractedDataCache[i].confidence = 'high';
+                    } else {
+                        extractedDataCache[i].status = extractedDataCache[i].trip_meter ? 'TRIP_ONLY' : 'UNREADABLE';
+                    }
+                    e.target.classList.remove('input-ok', 'input-warn', 'input-danger');
+                    e.target.classList.add(getKmInputClass(extractedDataCache[i]));
+                    updateKPIs();
+                });
+            });
+
+            // Bind 1-click "ใช้ Trip" buttons
+            resultBody.querySelectorAll('.use-trip-btn').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    const i = parseInt(e.currentTarget.dataset.tripIdx, 10);
+                    if (Number.isNaN(i) || !extractedDataCache[i]) return;
+                    const row = extractedDataCache[i];
+                    row.km_read = row.trip_meter;
+                    row.status = 'OK';
+                    row.notes = row.notes
+                        ? `${row.notes} (ยืนยันใช้ค่า Trip โดยผู้ตรวจ)`
+                        : 'ยืนยันใช้ค่า Trip โดยผู้ตรวจ';
+                    renderTable();
+                    updateKPIs();
+                    showToast(`ใช้ค่า Trip (${row.trip_meter} km.) สำหรับ ${row.riderName || row.img_name}`);
+                });
+            });
+
+            // Bind thumbnail Lightbox zoom
+            resultBody.querySelectorAll('.result-thumb').forEach((img) => {
+                img.addEventListener('click', (e) => {
+                    const i = parseInt(e.currentTarget.dataset.resIdx, 10);
+                    if (!Number.isNaN(i)) openLightbox('result', i);
+                });
+            });
+        }
+
+        // Copy LINE Retake Message (uses execCommand for iframe compatibility)
+        copyRetakeBtn.addEventListener('click', () => {
+            const flagged = extractedDataCache.filter((item) => !isRowOk(item));
+            if (flagged.length === 0) return;
+
+            const lines = [
+                'รบกวนไรเดอร์ถ่ายรูปหน้าปัดเลขไมล์ (ODO) ใหม่ตามรายการด้านล่างครับ:'
+            ];
+            flagged.forEach((item) => {
+                const reason = item.notes || (
+                    item.status === 'TRIP_ONLY'
+                        ? 'หน้าปัดแสดงเฉพาะ Trip กรุณากดสลับเป็น ODO'
+                        : item.status === 'OBSTRUCTED'
+                            ? 'มีวัตถุหรือแสงสะท้อนบังเลขไมล์'
+                            : 'อ่านตัวเลขไม่ชัดเจน'
+                );
+                const who = item.riderName || item.img_name;
+                const detail = [item.dateStr, item.photoSeq].filter(Boolean).join(' · ');
+                lines.push(`- ${who}${detail ? ` (${detail})` : ''} : ${reason}`);
+            });
+
+            const textToCopy = lines.join('\n');
+            const textarea = document.createElement('textarea');
+            textarea.value = textToCopy;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`คัดลอกข้อความแจ้งถ่ายใหม่ ${flagged.length} รายการแล้ว`);
+            } catch (err) {
+                showError('ไม่สามารถคัดลอกข้อความไปยังคลิปบอร์ดได้');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        });
+
+        // CSV Export Utility
+        function csvEscape(value) {
+            const str = String(value ?? '').replace(/"/g, '""');
+            return /[",\n\r]/.test(str) ? `"${str}"` : str;
+        }
+
         // Exact 4-Column UTF-8 BOM CSV Export: ชื่อไรเดอร์,วันที่,เลขไมล์,รูปที่
         exportBtn.addEventListener('click', () => {
             if (extractedDataCache.length === 0) return;
 
             const header = ['ชื่อไรเดอร์', 'วันที่', 'เลขไมล์', 'รูปที่'];
-            const rows = extractedDataCache.map(item => [
+            const rows = extractedDataCache.map((item) => [
                 item.riderName || item.img_name,
                 item.dateStr || '',
                 formatKmForCsv(item.km_read),
@@ -973,7 +2063,180 @@
             ].map(csvEscape).join(','));
 
             const csvString = '\uFEFF' + [header.join(','), ...rows].join('\n');
-// ... existing code ... -->
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `fleet_odometer_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast(`ดาวน์โหลดไฟล์ CSV (${extractedDataCache.length} รายการ) เรียบร้อยแล้ว`);
+        });
+
+        // ============================================================
+        // 6. Interactive Lightbox (Zoom, Rotate, Contrast, Live Sync)
+        // ============================================================
+        function applyLightboxTransform() {
+            lightboxImage.style.transform = `rotate(${lightboxRotation}deg)`;
+            lightboxImage.classList.toggle('img-contrast-boost', lightboxContrast);
+            contrastToggleBtn.classList.toggle('filter-active', lightboxContrast);
+        }
+
+        function renderLightboxContent() {
+            const list = lightboxMode === 'result' ? extractedDataCache : uploadedImages;
+            if (lightboxIndex < 0 || lightboxIndex >= list.length) {
+                closeLightbox();
+                return;
+            }
+
+            lightboxRotation = 0;
+            lightboxContrast = false;
+            applyLightboxTransform();
+
+            lightboxPrevBtn.disabled = lightboxIndex <= 0;
+            lightboxNextBtn.disabled = lightboxIndex >= list.length - 1;
+
+            if (lightboxMode === 'result') {
+                const row = extractedDataCache[lightboxIndex];
+                const titleParts = [row.riderName || row.img_name, row.dateStr, row.photoSeq].filter(Boolean);
+                lightboxCaption.textContent = `#${row.no} — ${titleParts.join(' · ')}`;
+                lightboxSubMeta.textContent = `ไฟล์ต้นฉบับ: ${row.img_name}`;
+                lightboxImage.src = row.dataUrl;
+
+                lightboxEditBar.classList.remove('hidden');
+                lightboxEditBar.classList.add('flex');
+
+                lightboxKmInput.value = row.km_read || '';
+                lightboxKmInput.classList.remove('input-ok', 'input-warn', 'input-danger');
+                lightboxKmInput.classList.add(getKmInputClass(row));
+
+                lightboxStatusNote.innerHTML = `
+                    ${getStatusPillHtml(row.status)}
+                    ${getTierBadgeHtml(row)}
+                    ${row.notes ? `<span class="text-[#56736b]">${escapeHtml(row.notes)}</span>` : ''}
+                `;
+
+                if (row.trip_meter) {
+                    lightboxUseTripBtn.textContent = `ใช้ Trip (${row.trip_meter})`;
+                    lightboxUseTripBtn.classList.remove('hidden');
+                } else {
+                    lightboxUseTripBtn.classList.add('hidden');
+                }
+            } else {
+                const imgObj = uploadedImages[lightboxIndex];
+                const meta = imgObj.meta || {};
+                const titleParts = [meta.riderName || imgObj.name, meta.dateStr, meta.photoSeq].filter(Boolean);
+                lightboxCaption.textContent = `คิวรูปที่ ${lightboxIndex + 1} — ${titleParts.join(' · ')}`;
+                lightboxSubMeta.textContent = `ไฟล์: ${imgObj.name} (${imgObj.width}×${imgObj.height}px)`;
+                lightboxImage.src = imgObj.dataUrl;
+
+                lightboxEditBar.classList.add('hidden');
+                lightboxEditBar.classList.remove('flex');
+            }
+        }
+
+        function openLightbox(mode, idx) {
+            lightboxMode = mode;
+            lightboxIndex = idx;
+            lightboxModal.classList.remove('hidden');
+            lightboxModal.classList.add('flex');
+            renderLightboxContent();
+        }
+
+        function closeLightbox() {
+            lightboxModal.classList.add('hidden');
+            lightboxModal.classList.remove('flex');
+            lightboxImage.src = '';
+            lightboxIndex = -1;
+        }
+
+        closeLightboxBtn.addEventListener('click', closeLightbox);
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) closeLightbox();
+        });
+
+        rotateLeftBtn.addEventListener('click', () => {
+            lightboxRotation -= 90;
+            applyLightboxTransform();
+        });
+
+        rotateRightBtn.addEventListener('click', () => {
+            lightboxRotation += 90;
+            applyLightboxTransform();
+        });
+
+        contrastToggleBtn.addEventListener('click', () => {
+            lightboxContrast = !lightboxContrast;
+            applyLightboxTransform();
+        });
+
+        resetViewBtn.addEventListener('click', () => {
+            lightboxRotation = 0;
+            lightboxContrast = false;
+            applyLightboxTransform();
+        });
+
+        lightboxPrevBtn.addEventListener('click', () => {
+            if (lightboxIndex > 0) {
+                lightboxIndex--;
+                renderLightboxContent();
+            }
+        });
+
+        lightboxNextBtn.addEventListener('click', () => {
+            const list = lightboxMode === 'result' ? extractedDataCache : uploadedImages;
+            if (lightboxIndex < list.length - 1) {
+                lightboxIndex++;
+                renderLightboxContent();
+            }
+        });
+
+        // Live sync edits from Lightbox input back to table & KPIs
+        lightboxKmInput.addEventListener('input', (e) => {
+            if (lightboxMode !== 'result' || !extractedDataCache[lightboxIndex]) return;
+            const row = extractedDataCache[lightboxIndex];
+            const cleanVal = e.target.value.trim();
+            row.km_read = cleanVal;
+            if (normalizeDigits(cleanVal)) {
+                row.status = 'OK';
+                row.confidence = 'high';
+            } else {
+                row.status = row.trip_meter ? 'TRIP_ONLY' : 'UNREADABLE';
+            }
+            lightboxKmInput.classList.remove('input-ok', 'input-warn', 'input-danger');
+            lightboxKmInput.classList.add(getKmInputClass(row));
+            renderTable();
+            updateKPIs();
+        });
+
+        lightboxUseTripBtn.addEventListener('click', () => {
+            if (lightboxMode !== 'result' || !extractedDataCache[lightboxIndex]) return;
+            const row = extractedDataCache[lightboxIndex];
+            if (!row.trip_meter) return;
+            row.km_read = row.trip_meter;
+            row.status = 'OK';
+            row.notes = row.notes
+                ? `${row.notes} (ยืนยันใช้ค่า Trip โดยผู้ตรวจ)`
+                : 'ยืนยันใช้ค่า Trip โดยผู้ตรวจ';
+            renderLightboxContent();
+            renderTable();
+            updateKPIs();
+            showToast(`ใช้ค่า Trip (${row.trip_meter} km.) เรียบร้อยแล้ว`);
+        });
+
+        // Keyboard shortcuts inside Lightbox
+        window.addEventListener('keydown', (e) => {
+            if (lightboxModal.classList.contains('hidden')) return;
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (document.activeElement !== lightboxKmInput) {
+                if (e.key === 'ArrowLeft') lightboxPrevBtn.click();
+                else if (e.key === 'ArrowRight') lightboxNextBtn.click();
+            }
+        });
     </script>
 </body>
 </html>

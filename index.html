@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Now Logistics - Fleet Odometer OCR</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Plus Jakarta Sans, Noto Sans Thai, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Mint Pastel Premium Neumorphism Design Tokens */
+        :root {
+            --page-bg: #e6f4ee;
+            --surface-gradient: linear-gradient(145deg, #e1f2eb, #effaf5);
+            --text-header: #16302b;
+            --text-body: #52736b;
+            --shadow-card: 12px 12px 24px #c3ddd2, -12px -12px 24px #ffffff;
+            --shadow-card-hover: 14px 14px 28px #bad7ca, -14px -14px 28px #ffffff;
+            --shadow-inset: inset 6px 6px 12px #c3ddd2, inset -6px -6px 12px #ffffff;
+            --shadow-inset-deep: inset 8px 8px 16px #b7d4c8, inset -8px -8px 16px #ffffff;
+            --border-specular: 1px solid rgba(255, 255, 255, 0.8);
+            --cta-gradient: linear-gradient(105deg, #34d399, #10b981 52%, #0d9488);
+            --cta-shadow: 0 8px 16px rgba(16, 185, 129, 0.32), inset 0 2px 2px rgba(255, 255, 255, 0.5), inset 0 -3px 5px rgba(6, 95, 70, 0.3);
+            --cta-border: 1px solid rgba(255, 255, 255, 0.45);
+            --radius-card: 24px;
+            --radius-well: 22px;
+            --radius-pill: 50px;
+            --ease-recovery: cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Thai', 'Inter', sans-serif;
+            background: var(--page-bg);
+            color: var(--text-body);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, .text-pine-header {
+            color: var(--text-header);
+        }
+
+        .font-metric {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Extruded Neumorphic Card */
+        .neu-card {
+            background: var(--surface-gradient);
+            border-radius: var(--radius-card);
+            border: var(--border-specular);
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s var(--ease-recovery), box-shadow 0.3s var(--ease-recovery);
+        }
+
+        /* Recessed Pill Input & Stat Pill */
+        .neu-pill-input {
+            background: var(--surface-gradient);
+            border-radius: var(--radius-pill);
+            border: var(--border-specular);
+            box-shadow: var(--shadow-inset);
+            color: var(--text-header);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .neu-pill-input::placeholder {
+            color: var(--text-body);
+            opacity: 0.7;
+        }
+
+        .neu-pill-input:focus {
+            outline: none;
+            box-shadow: var(--shadow-inset-deep), 0 0 0 2px rgba(16, 185, 129, 0.32);
+        }
+
+        /* Recessed Well (Dropzone & Table Container) */
+        .neu-well {
+            background: var(--surface-gradient);
+            border-radius: var(--radius-well);
+            border: var(--border-specular);
+            box-shadow: var(--shadow-inset);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .neu-well.drag-active {
+            box-shadow: var(--shadow-inset-deep), 0 0 0 3px rgba(16, 185, 129, 0.4);
+            border-color: #10b981;
+        }
+
+        /* Primary CTA with 3-Stage Micro-Interaction Physics:
+           Hover lift -> 80ms inset press -> 0.3s cubic-bezier(0.22, 1, 0.36, 1) recovery */
+        .neu-cta {
+            background: var(--cta-gradient);
+            border-radius: var(--radius-pill);
+            border: var(--cta-border);
+            box-shadow: var(--cta-shadow);
+            color: #ffffff;
+            transition: transform 0.3s var(--ease-recovery), box-shadow 0.3s var(--ease-recovery), filter 0.3s ease;
+        }
+
+        .neu-cta:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 12px 22px rgba(16, 185, 129, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.6), inset 0 -3px 6px rgba(6, 95, 70, 0.35);
+        }
+
+        .neu-cta:active:not(:disabled) {
+            transform: translateY(1px) scale(0.985);
+            box-shadow: inset 6px 6px 14px rgba(6, 78, 59, 0.45), inset -4px -4px 10px rgba(255, 255, 255, 0.25);
+            transition: transform 80ms ease, box-shadow 80ms ease;
+        }
+
+        .neu-cta:disabled {
+            background: linear-gradient(145deg, #d7ebe2, #e4f3ec);
+            color: #88a89f;
+            border: var(--border-specular);
+            box-shadow: var(--shadow-inset);
+            cursor: not-allowed;
+        }
+
+        /* Secondary Tactile Pill Button */
+        .neu-btn-secondary {
+            background: var(--surface-gradient);
+            border-radius: var(--radius-pill);
+            border: var(--border-specular);
+            box-shadow: 6px 6px 14px #c3ddd2, -6px -6px 14px #ffffff;
+            color: var(--text-header);
+            transition: transform 0.3s var(--ease-recovery), box-shadow 0.3s var(--ease-recovery), color 0.2s ease;
+        }
+
+        .neu-btn-secondary:hover:not(:disabled) {
+            transform: translateY(-1.5px);
+            color: #0d9488;
+            box-shadow: 8px 8px 18px #bad7ca, -8px -8px 18px #ffffff;
+        }
+
+        .neu-btn-secondary:active:not(:disabled) {
+            transform: translateY(0.5px);
+            box-shadow: var(--shadow-inset);
+            transition: transform 80ms ease, box-shadow 80ms ease;
+        }
+
+        .neu-btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Icon Badge */
+        .neu-icon-badge {
+            background: var(--surface-gradient);
+            border-radius: 16px;
+            border: var(--border-specular);
+            box-shadow: 5px 5px 10px #c3ddd2, -5px -5px 10px #ffffff;
+        }
+
+        /* Neumorphic Toggle Switch */
+        .neu-toggle-track {
+            background: var(--surface-gradient);
+            box-shadow: var(--shadow-inset);
+            border: var(--border-specular);
+            transition: background 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .neu-toggle-thumb {
+            background: linear-gradient(145deg, #ffffff, #e6f4ee);
+            box-shadow: 3px 3px 6px rgba(130, 168, 152, 0.5), -2px -2px 5px #ffffff;
+            transition: transform 0.25s var(--ease-recovery);
+        }
+
+        input:checked + .neu-toggle-track {
+            background: linear-gradient(105deg, #34d399, #10b981);
+            box-shadow: inset 3px 3px 7px rgba(6, 95, 70, 0.35), inset -2px -2px 5px rgba(255, 255, 255, 0.3);
+        }
+
+        input:checked + .neu-toggle-track .neu-toggle-thumb {
+            transform: translateX(20px);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.35);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Subtle Mint Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #b8d6c9; border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9bc4b3; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- 1. Header Bento -->
+        <header class="col-span-1 lg:col-span-12 neu-card p-6 md:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="neu-icon-badge p-3.5 text-emerald-600">
+                    <i data-lucide="gauge" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">Fleet Odometer OCR</h1>
+                    <p class="text-xs md:text-sm font-medium mt-0.5">
+                        อ่านเลขไมล์รถแบบ Batch (สูงสุด 25 รูป/รอบ) พร้อม Export CSV (<span class="font-metric text-[#16302b]">img_name, km_read</span>)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Live Stats Pills -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="neu-pill-input px-4 py-2 text-xs font-semibold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                    <span>คิวรูป:</span>
+                    <span id="queueStat" class="font-metric text-[#16302b] font-bold">0 / 25</span>
+                </div>
+                <div class="neu-pill-input px-4 py-2 text-xs font-semibold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>อ่านแล้ว:</span>
+                    <span id="totalExtractedStat" class="font-metric text-[#16302b] font-bold">0</span>
+                    <span>คัน</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Column: Engine Config + Batch Upload + Primary CTA -->
+        <div class="col-span-1 lg:col-span-5 flex flex-col gap-6">
+
+            <!-- 2. Engine Configuration Bento -->
+            <section class="neu-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="neu-icon-badge p-2 text-emerald-600">
+                            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-base font-bold">Engine Configuration</h2>
+                    </div>
+                    <button id="syncModelsBtn" type="button" class="neu-btn-secondary px-3.5 py-1.5 text-xs font-semibold inline-flex items-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        Sync Models
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        <input type="password" id="apiKeyInput" placeholder="วาง Google AI Studio API Key..." class="sm:col-span-7 neu-pill-input px-4 py-2.5 text-sm font-metric">
+                        <select id="apiModeSelect" class="sm:col-span-5 neu-pill-input px-4 py-2.5 text-xs font-semibold cursor-pointer">
+                            <option value="interactions" selected>Interactions API</option>
+                            <option value="generateContent">GenerateContent</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        <select id="modelInput" class="sm:col-span-9 neu-pill-input px-4 py-2.5 text-xs font-metric cursor-pointer">
+                            <optgroup label="Gemini 3 (High-Volume Batch · แนะนำ 25 รูป/รอบ)">
+                                <option value="gemini-3.5-flash-lite" selected>gemini-3.5-flash-lite (Default · 500 RPD)</option>
+                                <option value="gemini-3.8-flash">gemini-3.8-flash (5 RPM / 20 RPD)</option>
+                                <option value="gemini-3.6-flash">gemini-3.6-flash (5 RPM / 20 RPD)</option>
+                                <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (500 RPD)</option>
+                            </optgroup>
+                            <optgroup label="Gemini 4 (Latest Frontier)">
+                                <option value="gemini-4-hydrogen">gemini-4-hydrogen (5 RPM / 20 RPD)</option>
+                                <option value="gemini-4-argon">gemini-4-argon (Paid Only)</option>
+                                <option value="gemini-4-carbon">gemini-4-carbon (Paid Only)</option>
+                            </optgroup>
+                        </select>
+                        <button id="saveKeyBtn" type="button" class="sm:col-span-3 neu-btn-secondary px-4 py-2.5 text-xs font-bold">
+                            บันทึก
+                        </button>
+                    </div>
+
+                    <!-- Auto-fallback Trip Toggle Switch (Default OFF) -->
+                    <label for="autoUseTripToggle" class="neu-well px-4 py-3 mt-1 flex items-center justify-between gap-3 cursor-pointer select-none">
+                        <div class="text-xs leading-snug">
+                            <div class="font-bold text-[#16302b]">ใช้ค่า Trip แทนอัตโนมัติเมื่อหน้าปัดไม่แสดง ODO</div>
+                            <div class="text-[11px] opacity-85 mt-0.5">ปิดไว้เป็นค่าเริ่มต้น เพื่อป้องกันเลข Trip ปนกับเลขไมล์รวม</div>
+                        </div>
+                        <div class="relative inline-flex items-center shrink-0">
+                            <input type="checkbox" id="autoUseTripToggle" class="sr-only">
+                            <div class="neu-toggle-track w-11 h-6 rounded-full p-0.5 flex items-center">
+                                <div class="neu-toggle-thumb w-5 h-5 rounded-full"></div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <p id="configStatus" class="text-xs mt-3 leading-relaxed">
+                    ค่าเริ่มต้น: <strong class="text-[#16302b]">gemini-3.5-flash-lite</strong> (หน่วง 4.5 วิ/รูป · 500 RPD) เหมาะสำหรับอ่านล็อตใหญ่สูงสุด 25 รูป/รอบ
+                </p>
+            </section>
+
+            <!-- 3. Batch Upload Bento (Strict Max 25 Images) -->
+            <section class="neu-card p-6 flex flex-col flex-grow">
+                <div class="flex items-center justify-between mb-4 gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="neu-icon-badge p-2 text-emerald-600">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                        </div>
+                        <h2 class="text-base font-bold">อัปโหลดรูปหน้าปัดรถ</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="fileCountBadge" class="neu-pill-input px-3 py-1 text-xs font-metric font-bold text-emerald-700">0 / 25 รูป</span>
+                        <button id="clearFilesBtn" type="button" class="hidden neu-btn-secondary px-3 py-1 text-xs font-semibold text-rose-600 hover:text-rose-700">
+                            ล้างทั้งหมด
+                        </button>
+                    </div>
+                </div>
+
+                <input id="fileInput" name="fileInput" type="file" class="hidden" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple>
+
+                <div id="dropZone" role="button" tabindex="0" class="neu-well flex-grow flex flex-col justify-center p-4 cursor-pointer relative min-h-[240px] max-h-[340px] overflow-hidden">
+                    <div id="uploadPlaceholder" class="space-y-2 text-center flex flex-col items-center justify-center h-full w-full pointer-events-none px-2">
+                        <div class="neu-icon-badge p-4 mb-1 text-emerald-600">
+                            <i data-lucide="images" class="h-7 w-7"></i>
+                        </div>
+                        <div class="text-sm font-bold text-[#16302b]">
+                            คลิกเลือกไฟล์ หรือลากรูปหน้าปัดมาวางที่นี่
+                        </div>
+                        <p class="text-xs">รองรับ JPG, PNG, WEBP สูงสุด <strong class="text-[#16302b] font-metric">25</strong> รูปต่อรอบ</p>
+                    </div>
+                    <div id="imagePreviewContainer" class="w-full h-full overflow-y-auto hidden flex-wrap gap-3 content-start items-start p-1"></div>
+                </div>
+
+                <!-- Warning Banner (e.g., >25 files truncated or unsupported format) -->
+                <div id="warningMessage" class="hidden mt-4 rounded-2xl bg-amber-50/95 border border-amber-200 px-4 py-3 text-xs font-semibold text-amber-800 flex items-start gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5 text-amber-600"></i>
+                    <span id="warningText"></span>
+                </div>
+
+                <!-- Error Banner -->
+                <div id="errorMessage" class="hidden mt-3 rounded-2xl bg-rose-50/95 border border-rose-200 px-4 py-3 text-xs font-medium text-rose-700 break-words"></div>
+            </section>
+
+            <!-- Action CTA Bento -->
+            <section class="neu-card p-5">
+                <button id="processBtn" type="button" disabled class="neu-cta w-full py-4 px-6 text-sm md:text-base font-bold flex items-center justify-center gap-2.5">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    <span id="btnText">เริ่มอ่านเลขไมล์ด้วย AI</span>
+                    <div id="btnSpinner" class="spinner hidden"></div>
+                </button>
+            </section>
+        </div>
+
+        <!-- 5. Right Column: Results Table Bento -->
+        <section class="col-span-1 lg:col-span-7 neu-card p-6 flex flex-col min-h-[560px]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-2.5">
+                    <div class="neu-icon-badge p-2 text-teal-600">
+                        <i data-lucide="table-2" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold">ตารางเลขไมล์ที่อ่านได้</h2>
+                        <p class="text-xs">คลิกรูปเพื่อซูม/หมุนตรวจทาน · แก้ไขค่า <span class="font-metric font-semibold text-[#16302b]">km_read</span> ก่อน Export</p>
+                    </div>
+                </div>
+                <button id="exportBtn" type="button" disabled class="neu-btn-secondary px-5 py-2.5 text-xs font-bold inline-flex items-center justify-center gap-2 text-emerald-700">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="neu-well flex-grow overflow-auto">
+                <table class="min-w-full text-left border-collapse">
+                    <thead class="sticky top-0 z-10" style="background: linear-gradient(180deg, #e1f2eb 0%, #ebf7f2 100%);">
+                        <tr class="border-b border-white/80">
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#52736b]">No.</th>
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#52736b]">รูป</th>
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold tracking-wider text-[#52736b] font-metric">img_name</th>
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold tracking-wider text-[#52736b] font-metric">km_read</th>
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#52736b]">ประเภท</th>
+                            <th class="px-3.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#52736b]">สถานะ / หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultBody" class="divide-y divide-white/75">
+                        <tr id="emptyState">
+                            <td colspan="6" class="px-6 py-24 text-center text-sm">
+                                <div class="neu-icon-badge w-14 h-14 flex items-center justify-center mx-auto mb-3 text-emerald-600/60">
+                                    <i data-lucide="inbox" class="h-7 w-7"></i>
+                                </div>
+                                <div class="font-bold text-[#16302b]">ยังไม่มีข้อมูลเลขไมล์</div>
+                                <div class="text-xs mt-1">อัปโหลดรูปหน้าปัดรถสูงสุด 25 รูปทางซ้ายมือ แล้วกด "เริ่มอ่านเลขไมล์ด้วย AI"</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Image Zoom & Rotate Lightbox Modal -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#102621]/75 backdrop-blur-sm p-4">
+        <div class="neu-card max-w-3xl w-full p-4 md:p-6 relative">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div id="lightboxCaption" class="text-sm font-bold text-[#16302b] truncate pr-2"></div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button id="rotateLightboxBtn" type="button" class="neu-btn-secondary px-3.5 py-2 text-xs font-bold inline-flex items-center gap-1.5 text-emerald-700" title="หมุนภาพ 90 องศา">
+                        <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                        หมุน 90°
+                    </button>
+                    <button id="closeLightboxBtn" type="button" class="neu-btn-secondary p-2 text-[#16302b]" title="ปิดหน้าต่าง">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="neu-well p-4 flex items-center justify-center h-[68vh] overflow-hidden relative">
+                <img id="lightboxImage" src="" alt="Odometer Preview" class="max-h-full max-w-full object-contain rounded-xl transition-transform duration-300 ease-out">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Hard limit: 25 images per batch
+        const MAX_FILES = 25;
+
+        // Application State
+        let uploadedImages = []; // Array of { id, base64, mimeType, name, dataUrl }
+        let extractedDataCache = []; // Array of { no, img_name, dataUrl, km_read, rawOdometer, trip_meter, reading_type, confidence, notes }
+        let isProcessing = false;
+        let dragCounter = 0;
+        let lightboxRotation = 0;
+
+        // DOM References
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const apiModeSelect = document.getElementById('apiModeSelect');
+        const modelInput = document.getElementById('modelInput');
+        const saveKeyBtn = document.getElementById('saveKeyBtn');
+        const syncModelsBtn = document.getElementById('syncModelsBtn');
+        const autoUseTripToggle = document.getElementById('autoUseTripToggle');
+        const configStatus = document.getElementById('configStatus');
+        const fileInput = document.getElementById('fileInput');
+        const fileCountBadge = document.getElementById('fileCountBadge');
+        const queueStat = document.getElementById('queueStat');
+        const clearFilesBtn = document.getElementById('clearFilesBtn');
+        const dropZone = document.getElementById('dropZone');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const processBtn = document.getElementById('processBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const warningMessage = document.getElementById('warningMessage');
+        const warningText = document.getElementById('warningText');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultBody = document.getElementById('resultBody');
+        const emptyState = document.getElementById('emptyState');
+        const totalExtractedStat = document.getElementById('totalExtractedStat');
+        const lightboxModal = document.getElementById('lightboxModal');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        const rotateLightboxBtn = document.getElementById('rotateLightboxBtn');
+        const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+
+        // Load saved preferences from localStorage
+        const savedKey = localStorage.getItem('gemini_api_key');
+        const savedMode = localStorage.getItem('gemini_api_mode');
+        const savedModel = localStorage.getItem('gemini_model_pref');
+        const savedAutoTrip = localStorage.getItem('odo_auto_use_trip');
+
+        if (savedKey) apiKeyInput.value = savedKey;
+        if (savedMode && ['interactions', 'generateContent'].includes(savedMode)) {
+            apiModeSelect.value = savedMode;
+        }
+        if (savedModel && Array.from(modelInput.options).some(o => o.value === savedModel)) {
+            modelInput.value = savedModel;
+        } else {
+            modelInput.value = 'gemini-3.5-flash-lite';
+        }
+        // Default OFF unless explicitly saved as 'true'
+        autoUseTripToggle.checked = savedAutoTrip === 'true';
+
+        autoUseTripToggle.addEventListener('change', () => {
+            localStorage.setItem('odo_auto_use_trip', String(autoUseTripToggle.checked));
+        });
+
+        saveKeyBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            const model = modelInput.value.trim();
+            const mode = apiModeSelect.value;
+
+            if (key) localStorage.setItem('gemini_api_key', key);
+            localStorage.setItem('gemini_model_pref', model);
+            localStorage.setItem('gemini_api_mode', mode);
+            localStorage.setItem('odo_auto_use_trip', String(autoUseTripToggle.checked));
+
+            const original = saveKeyBtn.textContent;
+            saveKeyBtn.textContent = 'บันทึกแล้ว';
+            saveKeyBtn.classList.add('text-emerald-700');
+            setTimeout(() => {
+                saveKeyBtn.textContent = original;
+                saveKeyBtn.classList.remove('text-emerald-700');
+            }, 1500);
+        });
+
+        // Live Model Discovery via GET /v1beta/models
+        syncModelsBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
+            if (!key) {
+                showError('กรุณากรอก API Key ก่อนกด Sync Models');
+                return;
+            }
+            hideError();
+            syncModelsBtn.disabled = true;
+            configStatus.textContent = 'กำลังดึงรายชื่อโมเดลที่ใช้งานได้จากบัญชีของคุณ...';
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+                if (!res.ok) throw new Error(`Model list HTTP Error: ${res.status}`);
+                const data = await res.json();
+
+                const validModels = (data.models || [])
+                    .filter(m =>
+                        m.name &&
+                        m.name.includes('gemini') &&
+                        !m.name.includes('embedding') &&
+                        !m.name.includes('tts') &&
+                        !m.name.includes('image') &&
+                        !m.name.includes('live') &&
+                        !m.name.includes('transcribe') &&
+                        !m.name.includes('omni') &&
+                        (m.supportedGenerationMethods || []).includes('generateContent')
+                    )
+                    .map(m => m.name.replace(/^models\//, ''))
+                    .reverse();
+
+                if (validModels.length === 0) {
+                    throw new Error('ไม่พบโมเดล Gemini สำหรับอ่านภาพใน API Key นี้');
+                }
+
+                const currentVal = modelInput.value;
+                modelInput.innerHTML = '';
+                validModels.forEach(id => {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = id;
+                    modelInput.appendChild(opt);
+                });
+
+                if (validModels.includes('gemini-3.5-flash-lite')) {
+                    modelInput.value = 'gemini-3.5-flash-lite';
+                } else if (validModels.includes(currentVal)) {
+                    modelInput.value = currentVal;
+                }
+
+                configStatus.innerHTML = `ซิงก์สำเร็จ: พบ <strong class="text-[#16302b]">${validModels.length}</strong> โมเดลที่ใช้งานได้จริง`;
+            } catch (err) {
+                showError('Sync ไม่สำเร็จ: ' + err.message);
+                configStatus.textContent = 'กำลังใช้รายชื่อโมเดลมาตรฐานในระบบ';
+            } finally {
+                syncModelsBtn.disabled = false;
+            }
+        });
+
+        // Prevent browser from opening dropped images outside dropZone
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            window.addEventListener(eventName, (e) => e.preventDefault(), false);
+        });
+
+        dropZone.addEventListener('click', () => {
+            if (!isProcessing) fileInput.click();
+        });
+        dropZone.addEventListener('keydown', (e) => {
+            if (!isProcessing && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFiles(e.target.files);
+                fileInput.value = '';
+            }
+        });
+
+        dropZone.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isProcessing) return;
+            dragCounter++;
+            dropZone.classList.add('drag-active');
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isProcessing) return;
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = Math.max(0, dragCounter - 1);
+            if (dragCounter === 0) dropZone.classList.remove('drag-active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dragCounter = 0;
+            dropZone.classList.remove('drag-active');
+            if (isProcessing) return;
+            const droppedFiles = e.dataTransfer && e.dataTransfer.files;
+            if (droppedFiles && droppedFiles.length > 0) {
+                handleFiles(droppedFiles);
+            }
+        });
+
+        clearFilesBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isProcessing) return;
+            uploadedImages = [];
+            extractedDataCache = [];
+            hideWarning();
+            hideError();
+            syncUploadUI();
+            totalExtractedStat.textContent = '0';
+            exportBtn.disabled = true;
+            resetTable();
+        });
+
+        function resolveMimeType(file) {
+            if (['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return file.type;
+            const name = (file.name || '').toLowerCase();
+            if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+            if (name.endsWith('.png')) return 'image/png';
+            if (name.endsWith('.webp')) return 'image/webp';
+            return null;
+        }
+
+        function handleFiles(fileList) {
+            const incoming = Array.from(fileList);
+            if (incoming.length === 0) return;
+
+            hideError();
+            hideWarning();
+
+            // Separate valid image files from unsupported ones
+            const validFiles = [];
+            let unsupportedCount = 0;
+            incoming.forEach(file => {
+                const mimeType = resolveMimeType(file);
+                if (mimeType) {
+                    validFiles.push({ file, mimeType });
+                } else {
+                    unsupportedCount++;
+                }
+            });
+
+            // Enforce strict MAX_FILES = 25 cap
+            const availableSlots = Math.max(0, MAX_FILES - uploadedImages.length);
+            const accepted = validFiles.slice(0, availableSlots);
+            const truncatedCount = validFiles.length - accepted.length;
+
+            const warnings = [];
+            if (truncatedCount > 0) {
+                warnings.push(`อัปโหลดได้สูงสุด ${MAX_FILES} รูปต่อรอบ — ตัดส่วนเกินออก ${truncatedCount} รูปแล้ว`);
+            }
+            if (unsupportedCount > 0) {
+                warnings.push(`ข้ามไฟล์ที่ไม่รองรับ ${unsupportedCount} ไฟล์ (รองรับเฉพาะ JPG, PNG, WEBP)`);
+            }
+            if (warnings.length > 0) {
+                showWarning(warnings.join(' · '));
+            }
+
+            if (accepted.length === 0) return;
+
+            let remaining = accepted.length;
+            accepted.forEach(({ file, mimeType }) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const dataUrl = e.target.result;
+                    const base64 = dataUrl.split(',')[1];
+                    uploadedImages.push({
+                        id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                        base64,
+                        mimeType,
+                        name: file.name,
+                        dataUrl
+                    });
+                    remaining--;
+                    if (remaining === 0) {
+                        syncUploadUI();
+                        // Reset previous batch output when new images are queued
+                        extractedDataCache = [];
+                        totalExtractedStat.textContent = '0';
+                        exportBtn.disabled = true;
+                        resetTable();
+                    }
+                };
+                reader.onerror = () => {
+                    remaining--;
+                    if (remaining === 0) syncUploadUI();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImageById(id) {
+            if (isProcessing) return;
+            uploadedImages = uploadedImages.filter(img => img.id !== id);
+            syncUploadUI();
+        }
+
+        function syncUploadUI() {
+            const count = uploadedImages.length;
+            fileCountBadge.textContent = `${count} / ${MAX_FILES} รูป`;
+            queueStat.textContent = `${count} / ${MAX_FILES}`;
+
+            imagePreviewContainer.innerHTML = '';
+
+            if (count === 0) {
+                imagePreviewContainer.classList.add('hidden');
+                imagePreviewContainer.classList.remove('flex');
+                uploadPlaceholder.classList.remove('hidden');
+                clearFilesBtn.classList.add('hidden');
+                processBtn.disabled = true;
+                return;
+            }
+
+            uploadPlaceholder.classList.add('hidden');
+            imagePreviewContainer.classList.remove('hidden');
+            imagePreviewContainer.classList.add('flex');
+            clearFilesBtn.classList.remove('hidden');
+            processBtn.disabled = isProcessing;
+
+            uploadedImages.forEach((imgObj) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'relative group w-[74px]';
+                wrapper.innerHTML = `
+                    <img src="${imgObj.dataUrl}" title="${escapeHtml(imgObj.name)}" class="w-[74px] h-[74px] object-cover rounded-2xl border border-white/85 shadow-sm bg-white">
+                    <button type="button" data-remove-id="${imgObj.id}" aria-label="ลบรูป ${escapeHtml(imgObj.name)}" class="remove-thumb-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center shadow-md hover:bg-rose-600">
+                        ×
+                    </button>
+                    <span class="block text-[10px] truncate w-full mt-1 text-center font-medium text-[#52736b]">${escapeHtml(imgObj.name)}</span>
+                `;
+                imagePreviewContainer.appendChild(wrapper);
+            });
+
+            imagePreviewContainer.querySelectorAll('.remove-thumb-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeImageById(btn.dataset.removeId);
+                });
+            });
+        }
+
+        // Lightbox Controls with 90° Rotation
+        function openLightbox(src, caption) {
+            lightboxRotation = 0;
+            lightboxImage.style.transform = 'rotate(0deg)';
+            lightboxImage.src = src;
+            lightboxCaption.textContent = caption;
+            lightboxModal.classList.remove('hidden');
+            lightboxModal.classList.add('flex');
+        }
+
+        function rotateLightbox() {
+            lightboxRotation = (lightboxRotation + 90) % 360;
+            const isSideways = lightboxRotation % 180 !== 0;
+            const scale = isSideways ? 0.82 : 1;
+            lightboxImage.style.transform = `rotate(${lightboxRotation}deg) scale(${scale})`;
+        }
+
+        function closeLightbox() {
+            lightboxModal.classList.add('hidden');
+            lightboxModal.classList.remove('flex');
+            lightboxImage.src = '';
+            lightboxRotation = 0;
+        }
+
+        rotateLightboxBtn.addEventListener('click', rotateLightbox);
+        closeLightboxBtn.addEventListener('click', closeLightbox);
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) closeLightbox();
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // Sequential Batch OCR Execution
+        processBtn.addEventListener('click', async () => {
+            const currentApiKey = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
+            const currentModel = modelInput.value.trim();
+            const currentMode = apiModeSelect.value;
+            const autoUseTrip = autoUseTripToggle.checked;
+
+            if (!currentApiKey) {
+                showError('ยังไม่ได้ใส่ API Key กรุณาวาง Google AI Studio API Key ด้านบนก่อน');
+                return;
+            }
+            if (uploadedImages.length === 0) return;
+
+            localStorage.setItem('gemini_api_key', currentApiKey);
+            localStorage.setItem('gemini_model_pref', currentModel);
+            localStorage.setItem('gemini_api_mode', currentMode);
+
+            setLoadingState(true);
+            hideError();
+            resetTable();
+            extractedDataCache = [];
+            totalExtractedStat.textContent = '0';
+
+            const baseCooldown = currentModel.includes('lite') ? 4500 : 13000;
+
+            try {
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    const imgObj = uploadedImages[i];
+                    btnText.textContent = `กำลังอ่านรูปที่ ${i + 1}/${uploadedImages.length} (${currentModel})...`;
+
+                    const reading = await callGeminiWithRetry(imgObj, currentApiKey, currentModel, currentMode);
+
+                    const cleanOdo = normalizeNumber(reading.odometer);
+                    const cleanTrip = normalizeNumber(reading.trip_meter);
+                    const readingType = normalizeReadingType(reading.reading_type, cleanOdo, cleanTrip);
+
+                    // Determine initial km_read value according to toggle policy
+                    let kmRead = '';
+                    if (readingType === 'ODO' && cleanOdo) {
+                        kmRead = cleanOdo;
+                    } else if (readingType === 'TRIP' && autoUseTrip && cleanTrip) {
+                        kmRead = cleanTrip;
+                    }
+
+                    extractedDataCache.push({
+                        no: i + 1,
+                        img_name: imgObj.name,
+                        dataUrl: imgObj.dataUrl,
+                        km_read: kmRead,
+                        rawOdometer: cleanOdo,
+                        trip_meter: cleanTrip,
+                        reading_type: readingType,
+                        confidence: (reading.confidence || 'medium').toLowerCase(),
+                        notes: reading.notes || ''
+                    });
+
+                    totalExtractedStat.textContent = String(extractedDataCache.length);
+                    renderTable(extractedDataCache);
+
+                    if (i < uploadedImages.length - 1) {
+                        btnText.textContent = `พักรอบ (${(baseCooldown / 1000).toFixed(1)} วิ) ป้องกัน Rate Limit...`;
+                        await sleep(baseCooldown);
+                    }
+                }
+
+                exportBtn.disabled = extractedDataCache.length === 0;
+            } catch (error) {
+                showError(error.message);
+                console.error(error);
+                if (extractedDataCache.length > 0) exportBtn.disabled = false;
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        function normalizeNumber(val) {
+            if (val === null || val === undefined || val === '') return '';
+            const cleaned = String(val).replace(/,/g, '').replace(/[^0-9.]/g, '');
+            if (!cleaned) return '';
+            const num = parseFloat(cleaned);
+            return Number.isNaN(num) ? cleaned : String(num);
+        }
+
+        function normalizeReadingType(rawType, odo, trip) {
+            const upper = String(rawType || '').toUpperCase();
+            if (['ODO', 'TRIP', 'NONE'].includes(upper)) return upper;
+            if (odo) return 'ODO';
+            if (trip) return 'TRIP';
+            return 'NONE';
+        }
+
+        function extractInteractionsText(result) {
+            if (typeof result.output_text === 'string' && result.output_text.trim()) {
+                return result.output_text;
+            }
+            if (Array.isArray(result.steps)) {
+                const chunks = [];
+                for (const step of result.steps) {
+                    if (step.type === 'model_output') {
+                        if (typeof step.text === 'string') chunks.push(step.text);
+                        else if (typeof step.content === 'string') chunks.push(step.content);
+                        else if (Array.isArray(step.content)) {
+                            step.content.forEach(part => {
+                                if (typeof part.text === 'string') chunks.push(part.text);
+                            });
+                        }
+                    }
+                }
+                if (chunks.length > 0) return chunks.join('');
+            }
+            if (Array.isArray(result.outputs)) {
+                const textOut = result.outputs.find(o => o.type === 'text' && o.text);
+                if (textOut) return textOut.text;
+            }
+            return null;
+        }
+
+        // Precision Thai Fleet Odometer OCR with Retry & Backoff
+        async function callGeminiWithRetry(imageObj, keyToUse, modelToUse, modeToUse) {
+            const prompt = `You are a precision vehicle dashboard OCR specialist for fleet logistics in Thailand (motorcycles such as Honda Wave/Click/Scoopy/PCX, Yamaha NMAX/Aerox/Finn, vans, pickup trucks, and commercial trucks).
+Examine this dashboard photo and extract the TOTAL ODOMETER (ODO) distance reading.
+
+CRITICAL RULES:
+1. ROTATED PHOTOS: The photo may be rotated 90°, 180°, or 270° (sideways or upside-down). Mentally orient the dashboard upright before reading digits.
+2. NEVER CONFUSE DIGITAL CLOCKS WITH ODOMETER:
+   - Especially on Yamaha NMAX / Aerox / Lexi round digital LCDs, the TOP 3-4 digits (e.g., "6:35", "6 35", "4:11", "10:25" — sometimes with a faint or blinking colon) are the CLOCK TIME, NOT the odometer!
+   - Cross-check with any camera timestamp watermark on the photo (e.g., "06:38:34" or "16:14:09") to verify whether a top 3-4 digit number is the clock.
+   - On Yamaha NMAX/Aerox LCDs, the actual distance (labeled "ODO" or "TRIP 1" / "TRIP 2" with "km") is located at the BOTTOM of the LCD screen. NEVER put the clock value into odometer or trip_meter!
+3. DISTINGUISH ODO vs TRIP:
+   - Total odometer is usually labeled "ODO", "TOTAL", or is the primary 5-7 digit distance counter with "km".
+   - If total ODO is clearly visible, set reading_type to "ODO", put the total distance in "odometer", and put any secondary trip value in "trip_meter" (or "" if none).
+   - If ONLY TRIP (e.g., "TRIP", "TRIP 1", "TRIP 2", "TRIP A", "TRIP B") is displayed and NO total ODO is visible, set reading_type to "TRIP", put the trip value in "trip_meter", leave "odometer" as empty string "", set confidence to "low", and write in Thai in notes: "หน้าปัดแสดงเฉพาะ Trip ไม่เห็น ODO".
+   - If neither ODO nor TRIP can be read, set reading_type to "NONE", odometer to "", trip_meter to "", confidence to "low", and explain why in Thai in notes.
+4. ANALOG MECHANICAL DRUMS: If the rightmost digit has a contrasting color/background (white or red representing 0.1 km tenths), EXCLUDE that tenths digit so odometer is the whole integer distance, and note "ตัดหลักทศนิยมไมล์เข็มออกแล้ว" in Thai.
+5. OBSTRUCTIONS / GLARE: If sunlight glare, heavy reflection, shadow, water droplets, or a phone mount/holder partially blocks the digits, set confidence to "low" (or "medium" if mostly readable) and briefly explain in Thai in notes (e.g., "ขาจับมือถือบังหน้าจอ แนะนำตรวจซ้ำ").
+6. OUTPUT FORMAT: Return pure numeric strings only without commas, spaces, or units (e.g., "39872" or "64.1"). If crystal clear, set confidence to "high" and notes to "".`;
+
+            const odoSchema = {
+                type: "object",
+                properties: {
+                    odometer: { type: "string", description: "Total ODO pure numeric value (no commas, no unit), or empty string if only TRIP or unreadable" },
+                    trip_meter: { type: "string", description: "TRIP / TRIP 1 / TRIP 2 numeric value if visible, otherwise empty string" },
+                    reading_type: { type: "string", enum: ["ODO", "TRIP", "NONE"] },
+                    confidence: { type: "string", enum: ["high", "medium", "low"] },
+                    notes: { type: "string", description: "Short Thai note for warnings, clock/trip clarification, glare, phone mount, or empty string if clean" }
+                },
+                required: ["odometer", "trip_meter", "reading_type", "confidence", "notes"]
+            };
+
+            const maxRetries = 3;
+            const delays = [4000, 8000, 15000];
+            let lastError;
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    let response;
+
+                    if (modeToUse === 'interactions') {
+                        const interactionsPayload = {
+                            model: modelToUse,
+                            store: false,
+                            input: [
+                                { type: "text", text: prompt },
+                                { type: "image", data: imageObj.base64, mime_type: imageObj.mimeType }
+                            ],
+                            response_format: {
+                                type: "text",
+                                mime_type: "application/json",
+                                schema: odoSchema
+                            }
+                        };
+
+                        response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "x-goog-api-key": keyToUse,
+                                "Api-Revision": "2026-05-20"
+                            },
+                            body: JSON.stringify(interactionsPayload)
+                        });
+                    } else {
+                        const genContentPayload = {
+                            contents: [{
+                                role: "user",
+                                parts: [
+                                    { text: prompt },
+                                    { inlineData: { mimeType: imageObj.mimeType, data: imageObj.base64 } }
+                                ]
+                            }],
+                            generationConfig: {
+                                responseMimeType: "application/json",
+                                responseSchema: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        odometer: { type: "STRING" },
+                                        trip_meter: { type: "STRING" },
+                                        reading_type: { type: "STRING", enum: ["ODO", "TRIP", "NONE"] },
+                                        confidence: { type: "STRING", enum: ["high", "medium", "low"] },
+                                        notes: { type: "STRING" }
+                                    },
+                                    required: ["odometer", "trip_meter", "reading_type", "confidence", "notes"]
+                                }
+                            }
+                        };
+
+                        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelToUse)}:generateContent?key=${encodeURIComponent(keyToUse)}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(genContentPayload)
+                        });
+                    }
+
+                    if (!response.ok) {
+                        if (response.status === 429) throw new Error("429");
+                        const errBody = await response.text().catch(() => "");
+                        throw new Error(`API HTTP Error: ${response.status} (${modelToUse}). ${errBody.slice(0, 180)}`);
+                    }
+
+                    const result = await response.json();
+                    const textContent = modeToUse === 'interactions'
+                        ? extractInteractionsText(result)
+                        : result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (!textContent) throw new Error("โมเดลส่งผลลัพธ์ว่างเปล่า");
+                    return JSON.parse(textContent);
+
+                } catch (error) {
+                    lastError = error;
+                    if (attempt < maxRetries - 1) {
+                        const waitMs = error.message === "429" ? 20000 : delays[attempt];
+                        if (error.message === "429") {
+                            btnText.textContent = "ติด Rate Limit (429) พัก 20 วินาที...";
+                        }
+                        await sleep(waitMs);
+                    }
+                }
+            }
+
+            if (lastError && lastError.message === "429") {
+                throw new Error(`HTTP 429 บน ${modelToUse}: โควตา RPM หรือ RPD เต็มแล้ว แนะนำให้ใช้ gemini-3.5-flash-lite (500 รูป/วัน)`);
+            }
+            throw lastError;
+        }
+
+        function getTypeBadge(type) {
+            if (type === 'ODO') {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-metric font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/80">ODO</span>`;
+            }
+            if (type === 'TRIP') {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-metric font-bold bg-amber-100 text-amber-800 border border-amber-200/80">TRIP</span>`;
+            }
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200/80 text-slate-600">ไม่พบ</span>`;
+        }
+
+        function getConfidenceBadge(conf) {
+            if (conf === 'high') {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">High</span>`;
+            }
+            if (conf === 'low') {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">Low · ตรวจซ้ำ</span>`;
+            }
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">Medium</span>`;
+        }
+
+        function renderTable(data) {
+            resultBody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                resetTable();
+                return;
+            }
+
+            data.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/45 transition-colors';
+
+                // Quick 1-click "ใช้ Trip (X)" button when reading_type === 'TRIP', trip_meter exists, and km_read is currently empty
+                const showTripQuickBtn = item.reading_type === 'TRIP' && item.trip_meter && !item.km_read;
+
+                tr.innerHTML = `
+                    <td class="px-3.5 py-3 whitespace-nowrap text-xs font-metric font-bold text-[#16302b]">${item.no}</td>
+                    <td class="px-3.5 py-3 whitespace-nowrap">
+                        <img data-idx="${idx}" src="${item.dataUrl}" alt="${escapeHtml(item.img_name)}" class="thumb-zoom w-11 h-11 object-cover rounded-xl border border-white shadow-sm cursor-zoom-in hover:scale-105 transition-transform">
+                    </td>
+                    <td class="px-3.5 py-3 text-xs font-medium text-[#16302b] max-w-[155px] truncate" title="${escapeHtml(item.img_name)}">${escapeHtml(item.img_name)}</td>
+                    <td class="px-3.5 py-3 whitespace-nowrap">
+                        <div class="flex flex-col gap-1.5 items-start">
+                            <input type="text" inputmode="decimal" data-idx="${idx}" value="${escapeHtml(item.km_read)}" placeholder="ตรวจเอง..." class="km-edit neu-pill-input px-3 py-1.5 w-28 text-sm font-metric font-bold text-emerald-700">
+                            ${showTripQuickBtn ? `
+                                <button type="button" data-trip-idx="${idx}" class="use-trip-btn neu-btn-secondary px-2.5 py-1 text-[11px] font-bold text-amber-700 hover:text-emerald-700">
+                                    ใช้ Trip (${escapeHtml(item.trip_meter)})
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td class="px-3.5 py-3 whitespace-nowrap">${getTypeBadge(item.reading_type)}</td>
+                    <td class="px-3.5 py-3 text-xs">
+                        <div class="flex flex-col gap-1">
+                            <div>${getConfidenceBadge(item.confidence)}</div>
+                            ${item.notes ? `<span class="text-[11px] text-[#52736b] leading-snug">${escapeHtml(item.notes)}</span>` : ''}
+                        </div>
+                    </td>
+                `;
+                resultBody.appendChild(tr);
+            });
+
+            // Bind inline km_read editing
+            resultBody.querySelectorAll('.km-edit').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const i = parseInt(e.target.dataset.idx, 10);
+                    if (!Number.isNaN(i) && extractedDataCache[i]) {
+                        // Keep clean numeric characters
+                        const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                        extractedDataCache[i].km_read = cleaned;
+                    }
+                });
+            });
+
+            // Bind 1-click "ใช้ Trip (X)" approval button
+            resultBody.querySelectorAll('.use-trip-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const i = parseInt(e.currentTarget.dataset.tripIdx, 10);
+                    if (!Number.isNaN(i) && extractedDataCache[i]) {
+                        extractedDataCache[i].km_read = extractedDataCache[i].trip_meter;
+                        renderTable(extractedDataCache);
+                    }
+                });
+            });
+
+            // Bind Lightbox zoom modal
+            resultBody.querySelectorAll('.thumb-zoom').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    const i = parseInt(e.target.dataset.idx, 10);
+                    if (!Number.isNaN(i) && extractedDataCache[i]) {
+                        const row = extractedDataCache[i];
+                        openLightbox(row.dataUrl, `#${row.no} — ${row.img_name} (km_read: ${row.km_read || 'ยังไม่ระบุ'})`);
+                    }
+                });
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function resetTable() {
+            resultBody.innerHTML = '';
+            resultBody.appendChild(emptyState);
+        }
+
+        function setLoadingState(isLoading) {
+            isProcessing = isLoading;
+            processBtn.disabled = isLoading || uploadedImages.length === 0;
+            fileInput.disabled = isLoading;
+            clearFilesBtn.disabled = isLoading;
+            if (isLoading) {
+                btnText.textContent = 'กำลังประมวลผล...';
+                btnSpinner.classList.remove('hidden');
+            } else {
+                btnText.textContent = 'เริ่มอ่านเลขไมล์ด้วย AI';
+                btnSpinner.classList.add('hidden');
+            }
+        }
+
+        function showWarning(msg) {
+            warningText.textContent = msg;
+            warningMessage.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideWarning() {
+            warningMessage.classList.add('hidden');
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        function csvEscape(value) {
+            const str = String(value ?? '').replace(/"/g, '""');
+            return /[",\n\r]/.test(str) ? `"${str}"` : str;
+        }
+
+        // 6. CSV Export — Exact Required Schema: img_name,km_read with UTF-8 BOM
+        exportBtn.addEventListener('click', () => {
+            if (extractedDataCache.length === 0) return;
+
+            const header = ['img_name', 'km_read'];
+            const rows = extractedDataCache.map(item => [
+                item.img_name,
+                normalizeNumber(item.km_read)
+            ].map(csvEscape).join(','));
+
+            // UTF-8 BOM (\uFEFF) ensures Thai filenames open cleanly in Microsoft Excel
+            const csvString = '\uFEFF' + [header.join(','), ...rows].join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `fleet_odometer_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

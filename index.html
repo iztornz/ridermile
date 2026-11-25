@@ -427,13 +427,13 @@
                 <div class="neu-well px-3.5 py-2.5 mb-3 text-[11px] leading-relaxed text-[#56736b]">
                     <div class="font-bold text-[#16302b] flex items-center gap-1.5">
                         <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-                        <span>รูปแบบชื่อไฟล์: <span class="font-metric">DD-MM-YYYY HH-MM-SSชื่อไรเดอร์.รายละเอียด</span></span>
+                        <span>รูปแบบชื่อไฟล์: <span class="font-metric">MM-DD-YYYY HH-MM-SSชื่อไรเดอร์.รายละเอียด</span></span>
                     </div>
-                    <div class="mt-0.5 truncate" title="11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ → อนุสรณ์ ดวงภูมิเมธ | 11/02/2026 | รูปที่ 1">
+                    <div class="mt-0.5 truncate" title="11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ → อนุสรณ์ ดวงภูมิเมธ | 02/11/2026 | รูปที่ 1">
                         เช่น <span class="font-semibold text-[#16302b]">11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ</span>
                     </div>
                     <div class="mt-0.5 text-[10.5px]">
-                        → <span class="text-emerald-700 font-semibold">อนุสรณ์ ดวงภูมิเมธ</span> | <span class="font-metric text-[#16302b]">11/02/2026</span> | <span class="text-teal-700 font-semibold">รูปที่ 1</span> <span class="text-[#56736b]">(ชื่อ+วันที่ซ้ำจะรันเป็น รูปที่ 2 อัตโนมัติ)</span>
+                        → <span class="text-emerald-700 font-semibold">อนุสรณ์ ดวงภูมิเมธ</span> | <span class="font-metric text-[#16302b]">02/11/2026</span> | <span class="text-teal-700 font-semibold">รูปที่ 1</span> <span class="text-[#56736b]">(ชื่อ+วันที่ซ้ำจะรันเป็น รูปที่ 2 อัตโนมัติ)</span>
                     </div>
                 </div>
 
@@ -966,11 +966,15 @@
                 return { riderName: '', dateStr: '', timeStr: '', explicitSeq: null, photoSeq: 'รูปที่ 1' };
             }
 
-            // 1. NEW PRIMARY FORMAT: "11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ"
+            // 1. NEW PRIMARY FORMAT (MM-DD-YYYY HH-MM-SS...): "11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ"
             const leadingRe = /^(\d{2})[-_./](\d{2})[-_./](\d{4}|\d{2})(?:[\s_]+(\d{2})[-_.:](\d{2})(?:[-_.:](\d{2}))?)?[\s_-]*(.+)$/;
             const leadMatch = base.match(leadingRe);
             if (leadMatch && isValidDatePair(leadMatch[1], leadMatch[2])) {
-                const dateStr = `${leadMatch[1]}/${leadMatch[2]}/${leadMatch[3]}`;
+                const p1 = parseInt(leadMatch[1], 10);
+                // Convert MM-DD-YYYY -> DD/MM/YYYY (e.g. 11-02-2026 -> 02/11/2026); keep as-is if first number > 12
+                const dateStr = p1 <= 12
+                    ? `${leadMatch[2]}/${leadMatch[1]}/${leadMatch[3]}`
+                    : `${leadMatch[1]}/${leadMatch[2]}/${leadMatch[3]}`;
                 const timeStr = leadMatch[4]
                     ? `${leadMatch[4]}:${leadMatch[5]}${leadMatch[6] ? ':' + leadMatch[6] : ''}`
                     : '';

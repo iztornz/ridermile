@@ -292,7 +292,7 @@
                         <span class="neu-pill-input px-3 py-0.5 text-[11px] font-bold text-emerald-700">Mint Ops · 2-Tier AI</span>
                     </div>
                     <p class="text-xs md:text-sm font-medium mt-0.5 leading-snug">
-                        อ่านเลขไมล์แบบ Batch (สูงสุด 25 รูป) + แยกชื่อไฟล์อัตโนมัติ และ Export CSV (<span class="font-metric font-semibold text-[#16302b]">ชื่อไรเดอร์, วันที่, รูปที่, km_read</span>)
+                        อ่านเลขไมล์แบบ Batch (สูงสุด 25 รูป) + แยกชื่อไฟล์อัตโนมัติ และ Export CSV (<span class="font-metric font-semibold text-[#16302b]">ชื่อไรเดอร์, วันที่, เลขไมล์, รูปที่</span>)
                     </p>
                 </div>
             </div>
@@ -427,10 +427,13 @@
                 <div class="neu-well px-3.5 py-2.5 mb-3 text-[11px] leading-relaxed text-[#56736b]">
                     <div class="font-bold text-[#16302b] flex items-center gap-1.5">
                         <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
-                        <span>รูปแบบชื่อไฟล์: <span class="font-metric">ชื่อไรเดอร์_DDMMYY (ลำดับ)</span></span>
+                        <span>รูปแบบชื่อไฟล์: <span class="font-metric">DD-MM-YYYY HH-MM-SSชื่อไรเดอร์.รายละเอียด</span></span>
                     </div>
-                    <div class="mt-0.5 truncate" title="นิธิกร ได้พร้อม_021126 (2).jpg → นิธิกร ได้พร้อม | 02/11/26 | รูปที่ 2">
-                        เช่น <span class="font-semibold text-[#16302b]">นิธิกร ได้พร้อม_021126 (2).jpg</span> → <span class="text-emerald-700 font-semibold">นิธิกร ได้พร้อม</span> | <span class="font-metric text-[#16302b]">02/11/26</span> | <span class="text-teal-700 font-semibold">รูปที่ 2</span>
+                    <div class="mt-0.5 truncate" title="11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ → อนุสรณ์ ดวงภูมิเมธ | 11/02/2026 | รูปที่ 1">
+                        เช่น <span class="font-semibold text-[#16302b]">11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ</span>
+                    </div>
+                    <div class="mt-0.5 text-[10.5px]">
+                        → <span class="text-emerald-700 font-semibold">อนุสรณ์ ดวงภูมิเมธ</span> | <span class="font-metric text-[#16302b]">11/02/2026</span> | <span class="text-teal-700 font-semibold">รูปที่ 1</span> <span class="text-[#56736b]">(ชื่อ+วันที่ซ้ำจะรันเป็น รูปที่ 2 อัตโนมัติ)</span>
                     </div>
                 </div>
 
@@ -518,7 +521,7 @@
                     </button>
                 </div>
                 <span class="text-[11px] font-medium text-[#56736b]">
-                    รูปแบบ CSV: <span class="font-metric font-semibold text-[#16302b]">ชื่อไรเดอร์,วันที่,รูปที่,km_read</span>
+                    รูปแบบ CSV: <span class="font-metric font-semibold text-[#16302b]">ชื่อไรเดอร์,วันที่,เลขไมล์,รูปที่</span>
                 </span>
             </div>
 
@@ -531,8 +534,8 @@
                             <th class="px-2.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#56736b]">รูป</th>
                             <th class="px-2.5 py-3.5 text-[11px] font-bold tracking-wider text-[#56736b]">ชื่อไรเดอร์</th>
                             <th class="px-2.5 py-3.5 text-[11px] font-bold tracking-wider text-[#56736b]">วันที่</th>
+                            <th class="px-2.5 py-3.5 text-[11px] font-bold tracking-wider text-[#56736b]">เลขไมล์</th>
                             <th class="px-2.5 py-3.5 text-[11px] font-bold tracking-wider text-[#56736b]">รูปที่</th>
-                            <th class="px-2.5 py-3.5 text-[11px] font-bold tracking-wider text-[#56736b] font-metric">km_read</th>
                             <th class="px-2.5 py-3.5 text-[11px] font-bold uppercase tracking-wider text-[#56736b]">สถานะ / หมายเหตุ</th>
                         </tr>
                     </thead>
@@ -607,8 +610,11 @@
             <div id="lightboxEditBar" class="hidden neu-well p-3.5 flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div id="lightboxStatusNote" class="flex items-center gap-2 flex-wrap text-xs"></div>
                 <div class="flex items-center gap-2 shrink-0 flex-wrap">
-                    <label for="lightboxKmInput" class="text-xs font-bold text-[#16302b] font-metric">km_read:</label>
-                    <input id="lightboxKmInput" type="text" inputmode="decimal" placeholder="กรอกเลขไมล์..." class="neu-pill-input px-3.5 py-2 w-32 text-sm font-metric font-bold">
+                    <label for="lightboxKmInput" class="text-xs font-bold text-[#16302b]">เลขไมล์:</label>
+                    <div class="flex items-center gap-1.5">
+                        <input id="lightboxKmInput" type="text" inputmode="decimal" placeholder="กรอกเลขไมล์..." class="neu-pill-input px-3.5 py-2 w-32 text-sm font-metric font-bold">
+                        <span class="text-xs font-metric font-bold text-[#56736b]">km.</span>
+                    </div>
                     <button id="lightboxUseTripBtn" type="button" class="hidden neu-btn-secondary px-3 py-2 text-xs font-bold text-amber-800 hover:text-emerald-700"></button>
                 </div>
             </div>
@@ -629,242 +635,35 @@
         const MAX_IMAGE_DIM = 1600;
 
         // Application State
-        let uploadedImages = [];     // [{ id, name, meta: { riderName, dateStr, photoSeq }, mimeType, base64, dataUrl, width, height }]
-        let extractedDataCache = []; // [{ id, no, img_name, riderName, dateStr, photoSeq, dataUrl, km_read, trip_meter, clock_detected, clock_value, status, confidence, notes, tierUsed, modelUsed, escalated }]
+        let uploadedImages = [];     // [{ id, name, meta: { riderName, dateStr, timeStr, explicitSeq, photoSeq }, mimeType, base64, dataUrl, width, height }]
+        let extractedDataCache = []; // [{ id, no, img_name, riderName, dateStr, timeStr, explicitSeq, photoSeq, photoSeqManual, dataUrl, km_read, trip_meter, clock_detected, clock_value, status, confidence, notes, tierUsed, modelUsed, escalated }]
         let activeFilter = 'all';    // 'all' | 'ok' | 'flagged'
-        let isProcessing = false;
-        let abortRequested = false;
-        let activeAbortController = null;
-        let dragCounter = 0;
-
-        // Lightbox State
-        let lightboxMode = 'results'; // 'results' | 'upload'
-        let lightboxIndex = -1;
-        let lightboxRotation = 0;
-        let lightboxContrastOn = false;
-        let toastTimer = null;
-
-        // DOM Elements
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const toggleKeyVisibilityBtn = document.getElementById('toggleKeyVisibilityBtn');
-        const eyeIcon = document.getElementById('eyeIcon');
-        const saveKeyBtn = document.getElementById('saveKeyBtn');
-        const syncModelsBtn = document.getElementById('syncModelsBtn');
-        const apiModeSelect = document.getElementById('apiModeSelect');
-        const tier1ModelSelect = document.getElementById('tier1ModelSelect');
-        const tier2Toggle = document.getElementById('tier2Toggle');
-        const tier2SelectRow = document.getElementById('tier2SelectRow');
-        const tier2ModelSelect = document.getElementById('tier2ModelSelect');
-        const configStatus = document.getElementById('configStatus');
-
-        const fileInput = document.getElementById('fileInput');
-        const dropZone = document.getElementById('dropZone');
-        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-        const fileCountBadge = document.getElementById('fileCountBadge');
-        const clearFilesBtn = document.getElementById('clearFilesBtn');
-        const warningBanner = document.getElementById('warningBanner');
-        const warningText = document.getElementById('warningText');
-        const errorMessage = document.getElementById('errorMessage');
-        const errorText = document.getElementById('errorText');
-
-        const processBtn = document.getElementById('processBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        const btnSparkleIcon = document.getElementById('btnSparkleIcon');
-
-        const copyRetakeBtn = document.getElementById('copyRetakeBtn');
-        const copyRetakeLabel = document.getElementById('copyRetakeLabel');
-        const exportBtn = document.getElementById('exportBtn');
-        const resultBody = document.getElementById('resultBody');
-        const emptyState = document.getElementById('emptyState');
-
-        const kpiProcessed = document.getElementById('kpiProcessed');
-        const kpiOk = document.getElementById('kpiOk');
-        const kpiFlagged = document.getElementById('kpiFlagged');
-        const kpiTier2 = document.getElementById('kpiTier2');
-
-        const filterCountAll = document.getElementById('filterCountAll');
-        const filterCountOk = document.getElementById('filterCountOk');
-        const filterCountFlagged = document.getElementById('filterCountFlagged');
-        const filterButtons = document.querySelectorAll('.filter-pill');
-
-        const lightboxModal = document.getElementById('lightboxModal');
-        const lightboxCaption = document.getElementById('lightboxCaption');
-        const lightboxSubMeta = document.getElementById('lightboxSubMeta');
-        const lightboxImage = document.getElementById('lightboxImage');
-        const closeLightboxBtn = document.getElementById('closeLightboxBtn');
-        const rotateLeftBtn = document.getElementById('rotateLeftBtn');
-        const rotateRightBtn = document.getElementById('rotateRightBtn');
-        const contrastToggleBtn = document.getElementById('contrastToggleBtn');
-        const resetViewBtn = document.getElementById('resetViewBtn');
-        const lightboxPrevBtn = document.getElementById('lightboxPrevBtn');
-        const lightboxNextBtn = document.getElementById('lightboxNextBtn');
-        const lightboxEditBar = document.getElementById('lightboxEditBar');
-        const lightboxStatusNote = document.getElementById('lightboxStatusNote');
-        const lightboxKmInput = document.getElementById('lightboxKmInput');
-        const lightboxUseTripBtn = document.getElementById('lightboxUseTripBtn');
-
-        const toastBox = document.getElementById('toastBox');
-        const toastMessage = document.getElementById('toastMessage');
-
-        // Initialize icons
-        lucide.createIcons();
-
+// ... existing code ... -->
         // ============================================================
-        // 1. Preferences, Config Controls & Live Model Discovery
+        // 1.5 Filename Metadata Parser & Duplicate Sequence Numbering
         // ============================================================
-        function loadSavedPreferences() {
-            const savedKey = localStorage.getItem('gemini_api_key');
-            const savedMode = localStorage.getItem('gemini_api_mode');
-            const savedT1 = localStorage.getItem('gemini_tier1_model');
-            const savedT2 = localStorage.getItem('gemini_tier2_model');
-            const savedT2Enabled = localStorage.getItem('gemini_tier2_enabled');
-
-            if (savedKey) apiKeyInput.value = savedKey;
-            if (savedMode && ['interactions', 'generateContent'].includes(savedMode)) {
-                apiModeSelect.value = savedMode;
-            }
-            if (savedT1 && Array.from(tier1ModelSelect.options).some(o => o.value === savedT1)) {
-                tier1ModelSelect.value = savedT1;
-            }
-            if (savedT2 && Array.from(tier2ModelSelect.options).some(o => o.value === savedT2)) {
-                tier2ModelSelect.value = savedT2;
-            }
-            if (savedT2Enabled !== null) {
-                tier2Toggle.checked = savedT2Enabled === 'true';
-            }
-            syncTier2Visibility();
-            updateConfigStatusText();
+        function isValidDatePair(part1, part2) {
+            const a = parseInt(part1, 10);
+            const b = parseInt(part2, 10);
+            if (a < 1 || b < 1 || a > 31 || b > 31) return false;
+            // Support both DD-MM and MM-DD formats (at least one part must be a valid month 1..12)
+            return a <= 12 || b <= 12;
         }
 
-        function syncTier2Visibility() {
-            const enabled = tier2Toggle.checked;
-            tier2SelectRow.classList.toggle('opacity-50', !enabled);
-            tier2ModelSelect.disabled = !enabled;
-        }
-
-        function updateConfigStatusText() {
-            const t1 = tier1ModelSelect.value;
-            const t2 = tier2ModelSelect.value;
-            if (tier2Toggle.checked) {
-                configStatus.innerHTML = `พร้อมใช้งาน 2-Tier: <strong class="text-[#16302b]">${escapeHtml(t1)}</strong> → <strong class="text-[#16302b]">${escapeHtml(t2)}</strong>`;
-            } else {
-                configStatus.innerHTML = `โหมดโมเดลเดี่ยว (Tier 1): <strong class="text-[#16302b]">${escapeHtml(t1)}</strong>`;
-            }
-        }
-
-        loadSavedPreferences();
-
-        tier2Toggle.addEventListener('change', () => {
-            syncTier2Visibility();
-            localStorage.setItem('gemini_tier2_enabled', String(tier2Toggle.checked));
-            updateConfigStatusText();
-        });
-
-        tier1ModelSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_tier1_model', tier1ModelSelect.value);
-            updateConfigStatusText();
-        });
-
-        tier2ModelSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_tier2_model', tier2ModelSelect.value);
-            updateConfigStatusText();
-        });
-
-        apiModeSelect.addEventListener('change', () => {
-            localStorage.setItem('gemini_api_mode', apiModeSelect.value);
-        });
-
-        toggleKeyVisibilityBtn.addEventListener('click', () => {
-            const isHidden = apiKeyInput.type === 'password';
-            apiKeyInput.type = isHidden ? 'text' : 'password';
-            eyeIcon.setAttribute('data-lucide', isHidden ? 'eye-off' : 'eye');
-            lucide.createIcons();
-        });
-
-        saveKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (key) localStorage.setItem('gemini_api_key', key);
-            localStorage.setItem('gemini_api_mode', apiModeSelect.value);
-            localStorage.setItem('gemini_tier1_model', tier1ModelSelect.value);
-            localStorage.setItem('gemini_tier2_model', tier2ModelSelect.value);
-            localStorage.setItem('gemini_tier2_enabled', String(tier2Toggle.checked));
-            updateConfigStatusText();
-            showToast('บันทึกการตั้งค่า API Key และโมเดลแล้ว');
-        });
-
-        // Live Model Discovery via GET /v1beta/models
-        syncModelsBtn.addEventListener('click', async () => {
-            const key = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
-            if (!key) {
-                showError('กรุณากรอก Google AI Studio API Key ก่อนกด Sync Models');
-                return;
-            }
-            hideError();
-            syncModelsBtn.disabled = true;
-            configStatus.textContent = 'กำลังดึงรายชื่อโมเดลที่ใช้งานได้จากบัญชีของคุณ...';
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
-                if (!res.ok) throw new Error(`Model list HTTP Error: ${res.status}`);
-                const data = await res.json();
-
-                const validModels = (data.models || [])
-                    .filter(m =>
-                        m.name &&
-                        m.name.includes('gemini') &&
-                        !m.name.includes('embedding') &&
-                        !m.name.includes('tts') &&
-                        !m.name.includes('image') &&
-                        !m.name.includes('live') &&
-                        !m.name.includes('transcribe') &&
-                        !m.name.includes('omni') &&
-                        (m.supportedGenerationMethods || []).includes('generateContent')
-                    )
-                    .map(m => m.name.replace(/^models\//, ''))
-                    .reverse();
-
-                if (validModels.length === 0) {
-                    throw new Error('ไม่พบโมเดล Gemini สำหรับอ่านภาพใน API Key นี้');
+        function stripTrailingPhotoSuffix(rawName) {
+            let namePart = String(rawName || '').trim();
+            const lastDotIdx = namePart.lastIndexOf('.');
+            if (lastDotIdx > 0) {
+                const beforeDot = namePart.slice(0, lastDotIdx).trim();
+                const afterDot = namePart.slice(lastDotIdx + 1).trim();
+                const isPhotoKeyword = /(ภาพ|รูป|ไมล์|น้ำมัน|หน้าปัด|เรือนไมล์|photo|img|image|odo|fuel|meter)/i.test(afterDot);
+                const looksLikeFullNameBeforeDot = beforeDot.includes(' ') || beforeDot.length >= 6;
+                const startsImmediatelyAfterDot = Boolean(namePart[lastDotIdx + 1]) && !/\s/.test(namePart[lastDotIdx + 1]);
+                if (afterDot && startsImmediatelyAfterDot && (isPhotoKeyword || looksLikeFullNameBeforeDot)) {
+                    namePart = beforeDot;
                 }
-
-                populateModelDropdown(tier1ModelSelect, validModels, tier1ModelSelect.value, 'gemini-3.8-flash');
-                populateModelDropdown(tier2ModelSelect, validModels, tier2ModelSelect.value, 'gemini-4-argon');
-
-                configStatus.innerHTML = `ซิงก์สำเร็จ: พบ <strong class="text-[#16302b]">${validModels.length}</strong> โมเดลที่ใช้งานได้จริง`;
-                showToast(`ซิงก์รายชื่อโมเดลสำเร็จ (${validModels.length} โมเดล)`);
-            } catch (err) {
-                showError('Sync โมเดลไม่สำเร็จ: ' + err.message);
-                updateConfigStatusText();
-            } finally {
-                syncModelsBtn.disabled = false;
             }
-        });
-
-        function populateModelDropdown(selectEl, models, prevVal, preferredDefault) {
-            selectEl.innerHTML = '';
-            models.forEach(id => {
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.textContent = id;
-                selectEl.appendChild(opt);
-            });
-            if (models.includes(prevVal)) {
-                selectEl.value = prevVal;
-            } else if (models.includes(preferredDefault)) {
-                selectEl.value = preferredDefault;
-            }
-        }
-
-        // ============================================================
-        // 1.5 Filename Metadata Parser
-        // ============================================================
-        function isValidDayMonth(dd, mm) {
-            const d = parseInt(dd, 10);
-            const m = parseInt(mm, 10);
-            return d >= 1 && d <= 31 && m >= 1 && m <= 12;
+            return namePart.replace(/^[\s_-]+|[\s_-]+$/g, '').trim();
         }
 
         function parseFilenameMeta(fileName) {
@@ -873,41 +672,69 @@
                 .trim();
 
             if (!base) {
-                return { riderName: '', dateStr: '', photoSeq: 'รูปที่ 1' };
+                return { riderName: '', dateStr: '', timeStr: '', explicitSeq: null, photoSeq: 'รูปที่ 1' };
             }
 
-            // Optional trailing sequence token: (2), ( 2 ), #2, _2, -2
-            const seqPattern = '(?:\\s*(?:\\(\\s*(\\d+)\\s*\\)|#\\s*(\\d+)|[_-]\\s*(\\d+)))?';
+            // 1. NEW PRIMARY FORMAT: "11-02-2026 06-22-11อนุสรณ์ ดวงภูมิเมธ.ภาพถ่ายระดับน้ำมันคงเหลือ"
+            // Leading date (DD-MM-YYYY / MM-DD-YYYY / DD_MM_YY) + optional time (HH-MM-SS) + rider name + optional .suffix
+            const leadingRe = /^(\d{2})[-_./](\d{2})[-_./](\d{4}|\d{2})(?:[\s_]+(\d{2})[-_.:](\d{2})(?:[-_.:](\d{2}))?)?[\s_-]*(.+)$/;
+            const leadMatch = base.match(leadingRe);
+            if (leadMatch && isValidDatePair(leadMatch[1], leadMatch[2])) {
+                const dateStr = `${leadMatch[1]}/${leadMatch[2]}/${leadMatch[3]}`;
+                const timeStr = leadMatch[4]
+                    ? `${leadMatch[4]}:${leadMatch[5]}${leadMatch[6] ? ':' + leadMatch[6] : ''}`
+                    : '';
 
-            // 1. Match LAST delimited date token: DD-MM-YY(YY) / DD_MM_YY(YY) / DD.MM.YY(YY)
-            const delimitedRe = new RegExp(`^(?:(.*)[\\s_-]+)?(\\d{2})[-_.](\\d{2})[-_.](\\d{4}|\\d{2})${seqPattern}$`);
-            const delMatch = base.match(delimitedRe);
-            if (delMatch && isValidDayMonth(delMatch[2], delMatch[3])) {
-                const riderName = (delMatch[1] || '').replace(/[\s_-]+$/, '').trim();
-                const dd = delMatch[2];
-                const mm = delMatch[3];
-                const yy = delMatch[4];
-                const seqNum = delMatch[5] || delMatch[6] || delMatch[7];
+                let rest = (leadMatch[7] || '').trim();
+                let explicitSeq = null;
+
+                // Extract optional trailing sequence such as "(2)" or "#2"
+                const seqTrailMatch = rest.match(/^(.*?)(?:\s*\(\s*(\d+)\s*\)|\s*#\s*(\d+))$/);
+                if (seqTrailMatch) {
+                    rest = seqTrailMatch[1].trim();
+                    explicitSeq = parseInt(seqTrailMatch[2] || seqTrailMatch[3], 10);
+                }
+
+                const riderName = stripTrailingPhotoSuffix(rest);
                 return {
                     riderName,
-                    dateStr: `${dd}/${mm}/${yy}`,
-                    photoSeq: `รูปที่ ${seqNum ? parseInt(seqNum, 10) : 1}`
+                    dateStr,
+                    timeStr,
+                    explicitSeq,
+                    photoSeq: `รูปที่ ${explicitSeq || 1}`
                 };
             }
 
-            // 2. Match LAST compact date token: DDMMYYYY (8 digits) or DDMMYY (6 digits)
-            const compactRe = new RegExp(`^(?:(.*)[\\s_-]+)?(\\d{2})(\\d{2})(\\d{4}|\\d{2})${seqPattern}$`);
-            const compMatch = base.match(compactRe);
-            if (compMatch && isValidDayMonth(compMatch[2], compMatch[3])) {
-                const riderName = (compMatch[1] || '').replace(/[\s_-]+$/, '').trim();
-                const dd = compMatch[2];
-                const mm = compMatch[3];
-                const yy = compMatch[4];
-                const seqNum = compMatch[5] || compMatch[6] || compMatch[7];
+            // 2. LEGACY FORMATS (Backward compatible): "นิธิกร ได้พร้อม_021126 (2).jpg" / "rider_A_021126.jpg"
+            const seqPattern = '(?:\\s*(?:\\(\\s*(\\d+)\\s*\\)|#\\s*(\\d+)|[_-]\\s*(\\d+)))?';
+
+            const delimitedRe = new RegExp(`^(?:(.*)[\\s_-]+)?(\\d{2})[-_.](\\d{2})[-_.](\\d{4}|\\d{2})${seqPattern}$`);
+            const delMatch = base.match(delimitedRe);
+            if (delMatch && isValidDatePair(delMatch[2], delMatch[3])) {
+                const riderName = stripTrailingPhotoSuffix(delMatch[1] || '');
+                const seqNum = delMatch[5] || delMatch[6] || delMatch[7];
+                const explicitSeq = seqNum ? parseInt(seqNum, 10) : null;
                 return {
                     riderName,
-                    dateStr: `${dd}/${mm}/${yy}`,
-                    photoSeq: `รูปที่ ${seqNum ? parseInt(seqNum, 10) : 1}`
+                    dateStr: `${delMatch[2]}/${delMatch[3]}/${delMatch[4]}`,
+                    timeStr: '',
+                    explicitSeq,
+                    photoSeq: `รูปที่ ${explicitSeq || 1}`
+                };
+            }
+
+            const compactRe = new RegExp(`^(?:(.*)[\\s_-]+)?(\\d{2})(\\d{2})(\\d{4}|\\d{2})${seqPattern}$`);
+            const compMatch = base.match(compactRe);
+            if (compMatch && isValidDatePair(compMatch[2], compMatch[3])) {
+                const riderName = stripTrailingPhotoSuffix(compMatch[1] || '');
+                const seqNum = compMatch[5] || compMatch[6] || compMatch[7];
+                const explicitSeq = seqNum ? parseInt(seqNum, 10) : null;
+                return {
+                    riderName,
+                    dateStr: `${compMatch[2]}/${compMatch[3]}/${compMatch[4]}`,
+                    timeStr: '',
+                    explicitSeq,
+                    photoSeq: `รูปที่ ${explicitSeq || 1}`
                 };
             }
 
@@ -915,252 +742,79 @@
             const fallbackSeqRe = /^(.*?)(?:\s*\(\s*(\d+)\s*\)|\s*#\s*(\d+))$/;
             const fbMatch = base.match(fallbackSeqRe);
             if (fbMatch) {
-                const riderName = (fbMatch[1] || '').replace(/[\s_-]+$/, '').trim();
-                const seqNum = fbMatch[2] || fbMatch[3];
+                const riderName = stripTrailingPhotoSuffix(fbMatch[1] || '');
+                const explicitSeq = parseInt(fbMatch[2] || fbMatch[3], 10);
                 return {
                     riderName,
                     dateStr: '',
-                    photoSeq: `รูปที่ ${seqNum ? parseInt(seqNum, 10) : 1}`
+                    timeStr: '',
+                    explicitSeq,
+                    photoSeq: `รูปที่ ${explicitSeq || 1}`
                 };
             }
 
             return {
-                riderName: base.replace(/[\s_-]+$/, '').trim(),
+                riderName: stripTrailingPhotoSuffix(base),
                 dateStr: '',
+                timeStr: '',
+                explicitSeq: null,
                 photoSeq: 'รูปที่ 1'
             };
         }
 
-        // ============================================================
-        // 2. Client-Side Image Preprocessing (Resize <= 1600px + Contrast/Sharpen Boost)
-        // ============================================================
-        function clampByte(val) {
-            return val < 0 ? 0 : (val > 255 ? 255 : Math.round(val));
+        // Automatically assigns "รูปที่ 1", "รูปที่ 2", ... whenever (ชื่อไรเดอร์, วันที่) duplicates
+        function buildDuplicateKey(riderName, dateStr) {
+            const normRider = String(riderName || '').trim().toLowerCase().replace(/\s+/g, ' ');
+            const normDate = String(dateStr || '').trim().toLowerCase();
+            if (!normRider && !normDate) return null;
+            return `${normRider}||${normDate}`;
         }
 
-        function resolveMimeType(file) {
-            if (['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return file.type;
-            const lower = (file.name || '').toLowerCase();
-            if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-            if (lower.endsWith('.png')) return 'image/png';
-            if (lower.endsWith('.webp')) return 'image/webp';
-            return null;
-        }
+        function assignSequenceNumbers(items, isUploadQueue = false) {
+            const usedByKey = new Map();
 
-        // Loads an image file and resizes to max 1600px on longest edge (JPEG 0.92)
-        function loadAndResizeImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์ภาพได้'));
-                reader.onload = (ev) => {
-                    const rawUrl = ev.target.result;
-                    const img = new Image();
-                    img.onerror = () => reject(new Error('ไฟล์ภาพเสียหายหรือไม่รองรับ'));
-                    img.onload = () => {
-                        let w = img.naturalWidth || img.width;
-                        let h = img.naturalHeight || img.height;
+            items.forEach((entry) => {
+                const target = isUploadQueue ? entry.meta : entry;
+                if (!target) return;
 
-                        if (w > MAX_IMAGE_DIM || h > MAX_IMAGE_DIM) {
-                            const scale = MAX_IMAGE_DIM / Math.max(w, h);
-                            w = Math.round(w * scale);
-                            h = Math.round(h * scale);
-                        }
-
-                        const canvas = document.createElement('canvas');
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-                        resolve({
-                            mimeType: 'image/jpeg',
-                            dataUrl,
-                            base64: dataUrl.split(',')[1],
-                            width: w,
-                            height: h
-                        });
-                    };
-                    img.src = rawUrl;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // Generates a contrast-boosted & subtly sharpened JPEG base64 via Canvas for Tier 2 re-verification
-        function createContrastEnhancedBase64(dataUrl) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onerror = () => reject(new Error('ไม่สามารถปรับ Contrast ภาพได้'));
-                img.onload = () => {
-                    const w = img.naturalWidth || img.width;
-                    const h = img.naturalHeight || img.height;
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-
-                    try {
-                        const imageData = ctx.getImageData(0, 0, w, h);
-                        const d = imageData.data;
-
-                        // Pass 1: Contrast & subtle brightness compensation for glared/faded 7-segment LCDs
-                        const contrast = 1.45;
-                        const intercept = 128 * (1 - contrast) + 8;
-                        for (let i = 0; i < d.length; i += 4) {
-                            d[i] = clampByte(d[i] * contrast + intercept);
-                            d[i + 1] = clampByte(d[i + 1] * contrast + intercept);
-                            d[i + 2] = clampByte(d[i + 2] * contrast + intercept);
-                        }
-
-                        // Pass 2: Subtle 3x3 sharpen kernel [0, -0.25, 0 / -0.25, 2, -0.25 / 0, -0.25, 0]
-                        const src = new Uint8ClampedArray(d);
-                        const rowStride = w * 4;
-                        for (let y = 1; y < h - 1; y++) {
-                            for (let x = 1; x < w - 1; x++) {
-                                const idx = y * rowStride + x * 4;
-                                for (let c = 0; c < 3; c++) {
-                                    const center = src[idx + c] * 2;
-                                    const neighbors =
-                                        src[idx - rowStride + c] +
-                                        src[idx + rowStride + c] +
-                                        src[idx - 4 + c] +
-                                        src[idx + 4 + c];
-                                    d[idx + c] = clampByte(center - neighbors * 0.25);
-                                }
-                            }
-                        }
-
-                        ctx.putImageData(imageData, 0, 0);
-                    } catch (_) {
-                        ctx.filter = 'contrast(1.48) brightness(1.08)';
-                        ctx.drawImage(img, 0, 0, w, h);
+                const key = buildDuplicateKey(target.riderName, target.dateStr);
+                if (!key) {
+                    if (!target.photoSeqManual) {
+                        target.photoSeq = `รูปที่ ${target.explicitSeq || 1}`;
                     }
+                    return;
+                }
 
-                    const enhancedUrl = canvas.toDataURL('image/jpeg', 0.94);
-                    resolve(enhancedUrl.split(',')[1]);
-                };
-                img.src = dataUrl;
+                if (!usedByKey.has(key)) usedByKey.set(key, new Set());
+                const usedSet = usedByKey.get(key);
+
+                // Preserve manually edited "รูปที่" values while tracking their numbers
+                if (!isUploadQueue && target.photoSeqManual) {
+                    const manualNum = String(target.photoSeq || '').match(/(\d+)/);
+                    if (manualNum) usedSet.add(parseInt(manualNum[1], 10));
+                    return;
+                }
+
+                // Use explicit filename sequence if provided and not yet taken, otherwise pick next available 1, 2, 3...
+                let chosen = null;
+                if (target.explicitSeq && !usedSet.has(target.explicitSeq)) {
+                    chosen = target.explicitSeq;
+                } else {
+                    let seq = 1;
+                    while (usedSet.has(seq)) seq++;
+                    chosen = seq;
+                }
+
+                usedSet.add(chosen);
+                target.photoSeq = `รูปที่ ${chosen}`;
             });
         }
 
-        // ============================================================
-        // 3. Batch Upload Queue Management (Strict Cap: 25 Images)
-        // ============================================================
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
-            window.addEventListener(evt, e => e.preventDefault(), false);
-        });
-
-        dropZone.addEventListener('click', (e) => {
-            if (isProcessing) return;
-            if (e.target.closest('.remove-thumb-btn') || e.target.closest('.upload-thumb')) return;
-            fileInput.click();
-        });
-
-        dropZone.addEventListener('keydown', (e) => {
-            if (!isProcessing && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                fileInput.click();
-            }
-        });
-
-        fileInput.addEventListener('change', async (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                await handleFiles(e.target.files);
-                fileInput.value = '';
-            }
-        });
-
-        dropZone.addEventListener('dragenter', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (isProcessing) return;
-            dragCounter++;
-            dropZone.classList.add('drag-active');
-        });
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (isProcessing) return;
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-        });
-
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dragCounter = Math.max(0, dragCounter - 1);
-            if (dragCounter === 0) dropZone.classList.remove('drag-active');
-        });
-
-        dropZone.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dragCounter = 0;
-            dropZone.classList.remove('drag-active');
-            if (isProcessing) return;
-            const droppedFiles = e.dataTransfer && e.dataTransfer.files;
-            if (droppedFiles && droppedFiles.length > 0) {
-                await handleFiles(droppedFiles);
-            }
-        });
-
-        clearFilesBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isProcessing) return;
-            uploadedImages = [];
-            extractedDataCache = [];
-            activeFilter = 'all';
-            syncFilterPills();
-            hideWarning();
-            hideError();
-            syncUploadUI();
-            renderTable();
-            updateKPIs();
-        });
-
-        async function handleFiles(fileList) {
-            const incoming = Array.from(fileList || []);
-            if (incoming.length === 0) return;
-
-            hideError();
-            hideWarning();
-
-            const validFiles = [];
-            let unsupportedCount = 0;
-
-            for (const f of incoming) {
-                if (resolveMimeType(f)) {
-                    validFiles.push(f);
-                } else {
-                    unsupportedCount++;
-                }
-            }
-
-            const slotsLeft = MAX_FILES - uploadedImages.length;
-            const notices = [];
-
-            if (unsupportedCount > 0) {
-                notices.push(`ข้ามไฟล์ที่ไม่รองรับ ${unsupportedCount} ไฟล์ (รองรับ JPG, PNG, WEBP)`);
-            }
-
-            if (slotsLeft <= 0) {
-                showWarning(`อัปโหลดครบสูงสุด ${MAX_FILES} รูปแล้ว กรุณาลบบางรูปหรือกด "ล้างทั้งหมด" ก่อนเพิ่มรูปใหม่`);
-                return;
-            }
-
-            let accepted = validFiles;
-            if (validFiles.length > slotsLeft) {
-                const droppedCount = validFiles.length - slotsLeft;
-                accepted = validFiles.slice(0, slotsLeft);
-                notices.push(`จำกัดสูงสุด ${MAX_FILES} รูปต่อรอบ — รับเพิ่ม ${accepted.length} รูป และตัดออก ${droppedCount} รูป`);
-            }
-
-            if (notices.length > 0) {
-                showWarning(notices.join(' · '));
-            }
-
+        function formatKmForCsv(val) {
+            const digits = normalizeDigits(val);
+            return digits ? `${digits} km.` : '';
+        }
+// ... existing code ... -->
             for (const file of accepted) {
                 try {
                     const processed = await loadAndResizeImage(file);
@@ -1175,49 +829,11 @@
                 }
             }
 
+            assignSequenceNumbers(uploadedImages, true);
             syncUploadUI();
             updateKPIs();
         }
-
-        function syncUploadUI() {
-            fileCountBadge.textContent = `${uploadedImages.length} / ${MAX_FILES} รูป`;
-            imagePreviewContainer.innerHTML = '';
-
-            if (uploadedImages.length === 0) {
-                imagePreviewContainer.classList.add('hidden');
-                imagePreviewContainer.classList.remove('flex');
-                uploadPlaceholder.classList.remove('hidden');
-                clearFilesBtn.classList.add('hidden');
-                processBtn.disabled = true;
-                return;
-            }
-
-            uploadPlaceholder.classList.add('hidden');
-            imagePreviewContainer.classList.remove('hidden');
-            imagePreviewContainer.classList.add('flex');
-            clearFilesBtn.classList.remove('hidden');
-            processBtn.disabled = isProcessing;
-
-            uploadedImages.forEach((imgObj, idx) => {
-                const meta = imgObj.meta || parseFilenameMeta(imgObj.name);
-                const wrapper = document.createElement('div');
-                wrapper.className = 'relative group w-[108px] rounded-2xl p-1.5 bg-white/55 border border-white/85 shadow-sm flex flex-col';
-                wrapper.innerHTML = `
-                    <img data-upload-idx="${idx}" src="${imgObj.dataUrl}" title="${escapeHtml(imgObj.name)}" class="upload-thumb w-full h-[74px] object-cover rounded-xl border border-white/90 bg-white cursor-zoom-in hover:scale-[1.02] transition-transform">
-                    <button type="button" data-remove-id="${imgObj.id}" aria-label="ลบรูป ${escapeHtml(imgObj.name)}" class="remove-thumb-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center shadow-md hover:bg-rose-600">
-                        ×
-                    </button>
-                    <div class="mt-1.5 px-0.5 leading-tight">
-                        <div class="text-[10px] font-bold text-[#16302b] truncate" title="${escapeHtml(meta.riderName || imgObj.name)}">${escapeHtml(meta.riderName || '(ไม่ระบุชื่อ)')}</div>
-                        <div class="flex items-center justify-between gap-1 mt-0.5 text-[9.5px]">
-                            <span class="font-metric ${meta.dateStr ? 'text-[#56736b]' : 'text-amber-700 font-semibold'} truncate">${escapeHtml(meta.dateStr || 'ไม่มีวันที่')}</span>
-                            <span class="text-teal-700 font-bold shrink-0">${escapeHtml(meta.photoSeq)}</span>
-                        </div>
-                    </div>
-                `;
-                imagePreviewContainer.appendChild(wrapper);
-            });
-
+// ... existing code ... -->
             // Bind per-image remove
             imagePreviewContainer.querySelectorAll('.remove-thumb-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -1225,149 +841,12 @@
                     if (isProcessing) return;
                     const idToRemove = e.currentTarget.dataset.removeId;
                     uploadedImages = uploadedImages.filter(img => img.id !== idToRemove);
+                    assignSequenceNumbers(uploadedImages, true);
                     syncUploadUI();
                     updateKPIs();
                 });
             });
-
-            // Bind thumbnail zoom preview
-            imagePreviewContainer.querySelectorAll('.upload-thumb').forEach(img => {
-                img.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const i = parseInt(e.currentTarget.dataset.uploadIdx, 10);
-                    if (!Number.isNaN(i)) openLightbox('upload', i);
-                });
-            });
-        }
-
-        // ============================================================
-        // 4. 2-Tier Batch OCR Engine (gemini-3.8-flash -> gemini-4-argon)
-        // ============================================================
-        function abortableSleep(ms, signal) {
-            return new Promise((resolve, reject) => {
-                if (signal && signal.aborted) {
-                    const err = new Error('Aborted');
-                    err.name = 'AbortError';
-                    reject(err);
-                    return;
-                }
-                const timer = setTimeout(() => {
-                    if (signal) signal.removeEventListener('abort', onAbort);
-                    resolve();
-                }, ms);
-                function onAbort() {
-                    clearTimeout(timer);
-                    const err = new Error('Aborted');
-                    err.name = 'AbortError';
-                    reject(err);
-                }
-                if (signal) signal.addEventListener('abort', onAbort, { once: true });
-            });
-        }
-
-        stopBtn.addEventListener('click', () => {
-            if (!isProcessing) return;
-            abortRequested = true;
-            if (activeAbortController) activeAbortController.abort();
-            btnText.textContent = 'กำลังหยุดการประมวลผล...';
-        });
-
-        processBtn.addEventListener('click', async () => {
-            const apiKey = apiKeyInput.value.trim() || localStorage.getItem('gemini_api_key');
-            const apiMode = apiModeSelect.value;
-            const tier1Model = tier1ModelSelect.value.trim();
-            const tier2Model = tier2ModelSelect.value.trim();
-            const tier2Enabled = tier2Toggle.checked;
-
-            if (!apiKey) {
-                showError('ยังไม่ได้ใส่ API Key กรุณาวาง Google AI Studio API Key ด้านบนก่อนเริ่มใช้งาน');
-                return;
-            }
-            if (uploadedImages.length === 0) return;
-
-            localStorage.setItem('gemini_api_key', apiKey);
-            localStorage.setItem('gemini_api_mode', apiMode);
-            localStorage.setItem('gemini_tier1_model', tier1Model);
-            localStorage.setItem('gemini_tier2_model', tier2Model);
-            localStorage.setItem('gemini_tier2_enabled', String(tier2Enabled));
-
-            setLoadingState(true);
-            hideError();
-            extractedDataCache = [];
-            activeFilter = 'all';
-            syncFilterPills();
-            renderTable();
-            updateKPIs();
-
-            abortRequested = false;
-            activeAbortController = new AbortController();
-
-            const baseCooldown = tier1Model.includes('lite') ? 2800 : 5000;
-
-            try {
-                for (let i = 0; i < uploadedImages.length; i++) {
-                    if (abortRequested) break;
-
-                    const imgObj = uploadedImages[i];
-                    const posLabel = `รูปที่ ${i + 1}/${uploadedImages.length}`;
-                    btnText.textContent = `กำลังอ่าน ${posLabel} (${shortModelName(tier1Model)})...`;
-
-                    const t1Raw = await callGeminiWithRetry({
-                        base64: imgObj.base64,
-                        mimeType: imgObj.mimeType,
-                        apiKey,
-                        model: tier1Model,
-                        apiMode,
-                        thinkingLevel: null,
-                        signal: activeAbortController.signal,
-                        progressPrefix: `${posLabel} (Tier 1)`
-                    });
-
-                    let finalReading = normalizeReading(t1Raw);
-                    let tierUsed = 'T1';
-                    let modelUsed = tier1Model;
-                    let escalated = false;
-
-                    // Tier 2 Auto-Escalation Trigger:
-                    // confidence !== "high" OR empty odometer OR status OBSTRUCTED/UNREADABLE
-                    const shouldEscalate = tier2Enabled && (
-                        finalReading.confidence !== 'high' ||
-                        !finalReading.odometer ||
-                        finalReading.status === 'OBSTRUCTED' ||
-                        finalReading.status === 'UNREADABLE'
-                    );
-
-                    if (shouldEscalate && !abortRequested) {
-                        btnText.textContent = `${posLabel} · ส่ง Tier 2 (${shortModelName(tier2Model)}) ช่วยตรวจซ้ำ...`;
-                        try {
-                            const enhancedBase64 = await createContrastEnhancedBase64(imgObj.dataUrl);
-                            const useThinking = (apiMode === 'interactions' && tier2Model === 'gemini-4-argon') ? 'medium' : null;
-
-                            const t2Raw = await callGeminiWithRetry({
-                                base64: enhancedBase64,
-                                mimeType: 'image/jpeg',
-                                apiKey,
-                                model: tier2Model,
-                                apiMode,
-                                thinkingLevel: useThinking,
-                                signal: activeAbortController.signal,
-                                progressPrefix: `${posLabel} (Tier 2)`
-                            });
-
-                            finalReading = normalizeReading(t2Raw);
-                            tierUsed = 'T2';
-                            modelUsed = tier2Model;
-                            escalated = true;
-                        } catch (t2Err) {
-                            if (t2Err.name === 'AbortError' || abortRequested) throw t2Err;
-                            // Graceful fallback: keep Tier 1 result & append non-blocking Thai note
-                            const fallbackNote = `Tier 2 (${shortModelName(tier2Model)}) ไม่พร้อมใช้งาน — คงผลลัพธ์จาก Tier 1`;
-                            finalReading.notes = finalReading.notes
-                                ? `${finalReading.notes} · ${fallbackNote}`
-                                : fallbackNote;
-                        }
-                    }
-
+// ... existing code ... -->
                     const meta = imgObj.meta || parseFilenameMeta(imgObj.name);
                     extractedDataCache.push({
                         id: imgObj.id,
@@ -1375,7 +854,10 @@
                         img_name: imgObj.name,
                         riderName: meta.riderName,
                         dateStr: meta.dateStr,
-                        photoSeq: meta.photoSeq,
+                        timeStr: meta.timeStr || '',
+                        explicitSeq: meta.explicitSeq || null,
+                        photoSeq: meta.photoSeq || 'รูปที่ 1',
+                        photoSeqManual: false,
                         dataUrl: imgObj.dataUrl,
                         km_read: finalReading.odometer,
                         trip_meter: finalReading.trip_meter,
@@ -1389,368 +871,22 @@
                         escalated
                     });
 
+                    // Auto-number duplicate (ชื่อไรเดอร์, วันที่) rows as รูปที่ 1, รูปที่ 2, ...
+                    assignSequenceNumbers(extractedDataCache, false);
                     renderTable();
                     updateKPIs();
-
-                    if (i < uploadedImages.length - 1 && !abortRequested) {
-                        btnText.textContent = `พักรอบ (${(baseCooldown / 1000).toFixed(1)} วิ) ป้องกัน Rate Limit...`;
-                        await abortableSleep(baseCooldown, activeAbortController.signal);
-                    }
-                }
-
-                if (abortRequested) {
-                    showWarning(`หยุดการประมวลผลกลางคัน — บันทึกผลลัพธ์ที่อ่านเสร็จแล้ว ${extractedDataCache.length} รูป`);
-                } else if (extractedDataCache.length > 0) {
-                    showToast(`อ่านเลขไมล์ครบทั้ง ${extractedDataCache.length} รูปเรียบร้อย`);
-                }
-            } catch (error) {
-                if (error.name === 'AbortError' || abortRequested) {
-                    showWarning(`หยุดการประมวลผลกลางคัน — เก็บผลลัพธ์ไว้ ${extractedDataCache.length} รูป`);
-                } else {
-                    showError(error.message || 'เกิดข้อผิดพลาดระหว่างเรียกใช้ AI');
-                    console.error(error);
-                }
-            } finally {
-                activeAbortController = null;
-                setLoadingState(false);
-                updateKPIs();
-            }
-        });
-
-        // Strict Thai Motorcycle Dashboard OCR Prompt & JSON Schema
-        function buildOcrPrompt() {
-            return `You are a precision vehicle dashboard OCR specialist for fleet logistics in Thailand (motorcycles such as Yamaha NMAX, Aerox, Lexi, Grand Filano, Finn, Honda Wave, Click, Scoopy, PCX, plus vans and trucks).
-Inspect this dashboard photo carefully and extract the TOTAL ODOMETER (ODO) distance.
-
-MANDATORY DOMAIN RULES:
-1. YAMAHA CLOCK TRAP (CRITICAL): On circular or semi-circular Yamaha digital LCD panels (NMAX, Aerox, Lexi, Grand Filano), the 3–4 digits at the TOP center (for example "6 35", "4 11", "10:25", sometimes with a blinking or invisible colon) are the CLOCK (time of day) — NEVER extract the clock as "odometer"! The true distance counter (ODO / TRIP 1 / TRIP 2) is located at the BOTTOM next to "km". Cross-check any camera timestamp watermark on the photo if present. If a clock is visible on the dashboard, set "clock_detected" to true and put the clock text in "clock_value" (e.g. "6:35" or "4:11"); otherwise set "clock_detected" to false and "clock_value" to "".
-2. STRICT ODO VS TRIP SEPARATION: Populate "odometer" ONLY when TOTAL ODOMETER ("ODO" or "TOTAL") is clearly displayed. If the panel shows ONLY TRIP / TRIP 1 / TRIP 2 / TRIP A / TRIP B without total ODO, you MUST set "odometer" to "" (empty string), put the trip number in "trip_meter", set "status" to "TRIP_ONLY", set "confidence" to "low", and write a clear Thai note telling the rider to press SELECT to switch to ODO and retake the photo (e.g., "หน้าปัดแสดงเฉพาะ Trip ไม่เห็น ODO กรุณากดปุ่ม SELECT สลับไปโหมด ODO แล้วถ่ายใหม่").
-3. SIDEWAYS / ROTATED PHOTOS (90°/180°/270°): The photo may be sideways or upside-down (common on Honda Click/Scoopy/Wave). Mentally orient the dashboard upright before reading digits left-to-right.
-4. PHYSICAL OBSTRUCTION / GLARE: If a phone mount, magnetic pad, glare, shadow, or water droplets partially block the LCD digits, carefully trace the visible 7-segment strokes. Provide your best whole-number reading in "odometer" ONLY if reasonably legible (otherwise ""), set "status" to "OBSTRUCTED", set "confidence" to "low", and write a concise Thai note describing which part is blocked or glared for human verification.
-5. ANALOG / MECHANICAL ODOMETERS: Exclude the rightmost contrasting-color tenths digit (0.1 km) so "odometer" is whole integer km, and note "ตัดหลักทศนิยมไมล์เข็มออกแล้ว" in Thai.
-6. FORMATTING: Return "odometer" as digits ONLY (no commas, no spaces, no "km", no leading zeros — e.g., "39872") or "". If completely unreadable, set "status" to "UNREADABLE", "confidence" to "low", "odometer" to "", and explain briefly in Thai in "notes". If clean and crystal clear, set "status" to "OK", "confidence" to "high", and "notes" to "".`;
+// ... existing code ... -->
+5. ANALOG / MECHANICAL ODOMETERS (Honda Wave, Dream, etc.): On 6-drum mechanical odometers with 5 dark/black integer drums on the left and 1 contrasting white or red rightmost tenths drum (0.1 km — for example black "52594" + white "1"), you MUST EXCLUDE the rightmost white/red tenths digit so "odometer" is ONLY the 5-digit integer distance ("52594", NOT "525941"), and note "ตัดหลักทศนิยมไมล์เข็มออกแล้ว" in Thai. Minor scratches on the clear plastic lens do NOT make it unreadable if all integer digits can be read clearly (set "status" to "OK").
+6. FORMATTING: Return "odometer" as digits ONLY (no commas, no spaces, no "km", no leading zeros — e.g., "52594") or "". If completely unreadable, set "status" to "UNREADABLE", "confidence" to "low", "odometer" to "", and explain briefly in Thai in "notes". If clean and crystal clear, set "status" to "OK", "confidence" to "high", and "notes" to "".`;
         }
-
-        function extractInteractionsText(result) {
-            if (typeof result.output_text === 'string' && result.output_text.trim()) {
-                return result.output_text;
-            }
-            if (Array.isArray(result.steps)) {
-                const chunks = [];
-                for (const step of result.steps) {
-                    if (step.type === 'model_output') {
-                        if (typeof step.text === 'string') chunks.push(step.text);
-                        else if (typeof step.content === 'string') chunks.push(step.content);
-                        else if (Array.isArray(step.content)) {
-                            step.content.forEach(part => {
-                                if (typeof part.text === 'string') chunks.push(part.text);
-                            });
-                        }
-                    }
-                }
-                if (chunks.length > 0) return chunks.join('');
-            }
-            if (Array.isArray(result.outputs)) {
-                const textOut = result.outputs.find(o => o.type === 'text' && o.text);
-                if (textOut) return textOut.text;
-            }
-            return null;
-        }
-
-        function safeParseJsonText(text) {
-            const trimmed = String(text || '').trim();
-            try {
-                return JSON.parse(trimmed);
-            } catch (_) {
-                const fenced = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-                return JSON.parse(fenced);
-            }
-        }
-
-        async function callGeminiWithRetry({ base64, mimeType, apiKey, model, apiMode, thinkingLevel, signal, progressPrefix }) {
-            const prompt = buildOcrPrompt();
-
-            const jsonSchema = {
-                type: "object",
-                properties: {
-                    odometer: { type: "string", description: "Total ODO digits only (no commas, no unit, no leading zeros), or empty string if TRIP_ONLY/unreadable" },
-                    trip_meter: { type: "string", description: "TRIP / TRIP 1 / TRIP 2 numeric value if visible, else empty string" },
-                    clock_detected: { type: "boolean", description: "True if a dashboard clock reading is present and ignored" },
-                    clock_value: { type: "string", description: "Ignored clock reading on dashboard if present (e.g. 6:35), else empty string" },
-                    status: { type: "string", enum: ["OK", "TRIP_ONLY", "OBSTRUCTED", "UNREADABLE"] },
-                    confidence: { type: "string", enum: ["high", "medium", "low"] },
-                    notes: { type: "string", description: "Concise Thai explanation/warning or empty string when clean" }
-                },
-                required: ["odometer", "trip_meter", "clock_detected", "clock_value", "status", "confidence", "notes"]
-            };
-
-            const genContentSchema = {
-                type: "OBJECT",
-                properties: {
-                    odometer: { type: "STRING" },
-                    trip_meter: { type: "STRING" },
-                    clock_detected: { type: "BOOLEAN" },
-                    clock_value: { type: "STRING" },
-                    status: { type: "STRING", enum: ["OK", "TRIP_ONLY", "OBSTRUCTED", "UNREADABLE"] },
-                    confidence: { type: "STRING", enum: ["high", "medium", "low"] },
-                    notes: { type: "STRING" }
-                },
-                required: ["odometer", "trip_meter", "clock_detected", "clock_value", "status", "confidence", "notes"]
-            };
-
-            const maxRetries = 3;
-            const retryDelays = [4000, 8000, 15000];
-            let lastError = null;
-
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-                try {
-                    let response;
-
-                    if (apiMode === 'interactions') {
-                        const interactionsPayload = {
-                            model,
-                            store: false,
-                            input: [
-                                { type: "text", text: prompt },
-                                { type: "image", data: base64, mime_type: mimeType }
-                            ],
-                            response_format: {
-                                type: "text",
-                                mime_type: "application/json",
-                                schema: jsonSchema
-                            }
-                        };
-                        if (thinkingLevel) {
-                            interactionsPayload.generation_config = {
-                                thinking_level: thinkingLevel,
-                                max_output_tokens: 2048
-                            };
-                        }
-
-                        response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "x-goog-api-key": apiKey,
-                                "Api-Revision": "2026-05-20"
-                            },
-                            body: JSON.stringify(interactionsPayload),
-                            signal
-                        });
-                    } else {
-                        const genContentPayload = {
-                            contents: [{
-                                role: "user",
-                                parts: [
-                                    { text: prompt },
-                                    { inlineData: { mimeType, data: base64 } }
-                                ]
-                            }],
-                            generationConfig: {
-                                responseMimeType: "application/json",
-                                responseSchema: genContentSchema
-                            }
-                        };
-
-                        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(genContentPayload),
-                            signal
-                        });
-                    }
-
-                    if (!response.ok) {
-                        if (response.status === 429) throw new Error("429");
-                        const errBody = await response.text().catch(() => "");
-                        throw new Error(`API HTTP ${response.status} (${model}): ${errBody.slice(0, 180)}`);
-                    }
-
-                    const result = await response.json();
-                    const textContent = apiMode === 'interactions'
-                        ? extractInteractionsText(result)
-                        : result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (!textContent) throw new Error('โมเดลส่งผลลัพธ์ว่างเปล่า');
-                    return safeParseJsonText(textContent);
-                } catch (err) {
-                    if (err.name === 'AbortError') throw err;
-                    lastError = err;
-                    if (attempt < maxRetries - 1) {
-                        const waitMs = err.message === '429' ? 18000 : retryDelays[attempt];
-                        if (err.message === '429') {
-                            btnText.textContent = `${progressPrefix} · ติด Rate Limit (429) พัก 18 วิ...`;
-                        }
-                        await abortableSleep(waitMs, signal);
-                    }
-                }
-            }
-
-            if (lastError && lastError.message === '429') {
-                throw new Error(`HTTP 429 บน ${model}: โควตา RPM/RPD เต็มชั่วคราว แนะนำให้ลองสลับ Tier 1 ไปที่ gemini-3.5-flash-lite`);
-            }
-            throw lastError || new Error('เรียกใช้ Gemini API ไม่สำเร็จ');
-        }
-
-        function normalizeDigits(val) {
-            if (val === null || val === undefined || val === '') return '';
-            const cleaned = String(val).replace(/,/g, '').replace(/[^0-9.]/g, '');
-            if (!cleaned) return '';
-            const num = parseFloat(cleaned);
-            if (Number.isNaN(num)) return cleaned;
-            return String(num);
-        }
-
-        function normalizeReading(raw) {
-            const validStatuses = ['OK', 'TRIP_ONLY', 'OBSTRUCTED', 'UNREADABLE'];
-            const validConfs = ['high', 'medium', 'low'];
-
-            let status = String(raw.status || '').toUpperCase();
-            if (!validStatuses.includes(status)) status = raw.odometer ? 'OK' : 'UNREADABLE';
-
-            let confidence = String(raw.confidence || 'medium').toLowerCase();
-            if (!validConfs.includes(confidence)) confidence = 'medium';
-
-            let odometer = normalizeDigits(raw.odometer);
-            const tripMeter = normalizeDigits(raw.trip_meter);
-            const clockValue = String(raw.clock_value || '').trim();
-            const clockDetected = Boolean(raw.clock_detected) || Boolean(clockValue);
-            let notes = String(raw.notes || '').trim();
-
-            // Enforce strict ODO vs TRIP rule defensively
-            if (status === 'TRIP_ONLY') {
-                odometer = '';
-                confidence = 'low';
-                if (!notes) notes = 'หน้าปัดแสดงเฉพาะ Trip ไม่เห็น ODO กรุณากดปุ่ม SELECT สลับไปโหมด ODO แล้วถ่ายใหม่';
-            }
-            if (status === 'OK' && !odometer) {
-                status = 'UNREADABLE';
-                confidence = 'low';
-            }
-
-            return {
-                odometer,
-                trip_meter: tripMeter,
-                clock_detected: clockDetected,
-                clock_value: clockValue,
-                status,
-                confidence,
-                notes
-            };
-        }
-
-        // ============================================================
-        // 5. Results Table, Filters, KPIs & Ops Actions
-        // ============================================================
-        function isRowOk(item) {
-            return item.status === 'OK' && Boolean(String(item.km_read || '').trim());
-        }
-
-        function getKmInputClass(item) {
-            const hasVal = Boolean(String(item.km_read || '').trim());
-            if (item.status === 'OK' && hasVal) return 'input-ok';
-            if (item.status === 'TRIP_ONLY' || (hasVal && item.confidence !== 'high')) return 'input-warn';
-            return 'input-danger';
-        }
-
-        function getStatusPillHtml(status) {
-            switch (status) {
-                case 'OK':
-                    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">ผ่าน (OK)</span>`;
-                case 'TRIP_ONLY':
-                    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">TRIP Only</span>`;
-                case 'OBSTRUCTED':
-                    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200">บังจอ</span>`;
-                default:
-                    return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700 border border-slate-300">อ่านไม่ได้</span>`;
-            }
-        }
-
-        function getTierBadgeHtml(item) {
-            if (item.escalated) {
-                return `<span title="${escapeHtml(item.modelUsed)}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-bold bg-teal-100 text-teal-800 border border-teal-200">T2 · ${escapeHtml(shortModelName(item.modelUsed))}</span>`;
-            }
-            return `<span title="${escapeHtml(item.modelUsed)}" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-semibold bg-white/80 text-[#56736b] border border-white">T1</span>`;
-        }
-
-        function shortModelName(modelId) {
-            return String(modelId || '').replace(/^gemini-/, '');
-        }
-
-        function getFilteredIndices() {
-            const indices = [];
-            extractedDataCache.forEach((item, idx) => {
-                if (activeFilter === 'all') indices.push(idx);
-                else if (activeFilter === 'ok' && isRowOk(item)) indices.push(idx);
-                else if (activeFilter === 'flagged' && !isRowOk(item)) indices.push(idx);
-            });
-            return indices;
-        }
-
-        function syncFilterPills() {
-            filterButtons.forEach(btn => {
-                btn.classList.toggle('filter-active', btn.dataset.filter === activeFilter);
-            });
-        }
-
-        filterButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                activeFilter = btn.dataset.filter || 'all';
-                syncFilterPills();
-                renderTable();
-            });
-        });
-
-        function updateKPIs() {
-            const totalQueue = uploadedImages.length;
-            const processed = extractedDataCache.length;
-            const okCount = extractedDataCache.filter(isRowOk).length;
-            const flaggedCount = processed - okCount;
-            const tier2Count = extractedDataCache.filter(item => item.escalated).length;
-
-            kpiProcessed.textContent = `${processed} / ${totalQueue}`;
-            kpiOk.textContent = String(okCount);
-            kpiFlagged.textContent = String(flaggedCount);
-            kpiTier2.textContent = String(tier2Count);
-
-            filterCountAll.textContent = String(processed);
-            filterCountOk.textContent = String(okCount);
-            filterCountFlagged.textContent = String(flaggedCount);
-
-            exportBtn.disabled = processed === 0;
-            copyRetakeBtn.disabled = flaggedCount === 0;
-        }
-
-        function renderTable() {
-            resultBody.innerHTML = '';
-
-            if (extractedDataCache.length === 0) {
-                resultBody.appendChild(emptyState);
-                return;
-            }
-
-            const visibleIndices = getFilteredIndices();
-            if (visibleIndices.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td colspan="7" class="px-6 py-16 text-center text-xs font-semibold text-[#56736b]">
-                        ไม่พบรายการที่ตรงกับตัวกรองที่เลือก
-                    </td>
-                `;
-                resultBody.appendChild(tr);
-                return;
-            }
-
-            visibleIndices.forEach((idx) => {
-                const item = extractedDataCache[idx];
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-white/45 transition-colors';
-
-                const showTripQuickBtn = Boolean(item.trip_meter) && !String(item.km_read || '').trim();
+// ... existing code ... -->
                 const clockChip = item.clock_detected
                     ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-semibold bg-sky-100 text-sky-800 border border-sky-200">Clock${item.clock_value ? ' ' + escapeHtml(item.clock_value) : ''}</span>`
                     : '';
                 const dateEmptyClass = !String(item.dateStr || '').trim() ? 'input-warn' : '';
+                const seqNumMatch = String(item.photoSeq || '').match(/(\d+)/);
+                const isRepeatPhoto = seqNumMatch && parseInt(seqNumMatch[1], 10) >= 2;
+                const seqHighlightClass = isRepeatPhoto ? 'input-ok' : '';
 
                 tr.innerHTML = `
                     <td class="px-2.5 py-3 whitespace-nowrap text-xs font-metric font-bold text-[#16302b] align-top">${item.no}</td>
@@ -1758,18 +894,18 @@ MANDATORY DOMAIN RULES:
                         <img data-res-idx="${idx}" src="${item.dataUrl}" alt="${escapeHtml(item.img_name)}" class="result-thumb w-11 h-11 object-cover rounded-xl border border-white shadow-sm cursor-zoom-in hover:scale-105 transition-transform bg-white">
                     </td>
                     <td class="px-2.5 py-3 align-top">
-                        <input type="text" data-field="riderName" data-res-idx="${idx}" value="${escapeHtml(item.riderName)}" placeholder="ชื่อไรเดอร์..." title="${escapeHtml(item.img_name)}" class="meta-edit neu-pill-input px-3 py-1.5 w-36 sm:w-40 text-xs font-semibold text-[#16302b]">
-                        <div class="text-[10px] text-[#56736b] truncate max-w-[160px] mt-1 pl-2" title="${escapeHtml(item.img_name)}">${escapeHtml(item.img_name)}</div>
+                        <input type="text" data-field="riderName" data-res-idx="${idx}" value="${escapeHtml(item.riderName)}" placeholder="ชื่อไรเดอร์..." title="${escapeHtml(item.img_name)}" class="meta-edit neu-pill-input px-3 py-1.5 w-36 sm:w-44 text-xs font-semibold text-[#16302b]">
+                        <div class="text-[10px] text-[#56736b] truncate max-w-[175px] mt-1 pl-2" title="${escapeHtml(item.img_name)}">${escapeHtml(item.img_name)}</div>
                     </td>
                     <td class="px-2.5 py-3 whitespace-nowrap align-top">
-                        <input type="text" data-field="dateStr" data-res-idx="${idx}" value="${escapeHtml(item.dateStr)}" placeholder="DD/MM/YY" class="meta-edit neu-pill-input ${dateEmptyClass} px-2.5 py-1.5 w-24 text-xs font-metric font-semibold text-[#16302b]">
-                    </td>
-                    <td class="px-2.5 py-3 whitespace-nowrap align-top">
-                        <input type="text" data-field="photoSeq" data-res-idx="${idx}" value="${escapeHtml(item.photoSeq)}" placeholder="รูปที่ 1" class="meta-edit neu-pill-input px-2.5 py-1.5 w-20 text-xs font-semibold text-[#16302b]">
+                        <input type="text" data-field="dateStr" data-res-idx="${idx}" value="${escapeHtml(item.dateStr)}" placeholder="DD/MM/YYYY" class="meta-edit neu-pill-input ${dateEmptyClass} px-2.5 py-1.5 w-28 text-xs font-metric font-semibold text-[#16302b]">
                     </td>
                     <td class="px-2.5 py-3 whitespace-nowrap align-top">
                         <div class="flex flex-col items-start gap-1.5">
-                            <input type="text" inputmode="decimal" data-res-idx="${idx}" value="${escapeHtml(item.km_read)}" placeholder="กรอก/ตรวจ..." class="km-edit neu-pill-input ${getKmInputClass(item)} px-3 py-1.5 w-28 text-sm font-metric font-bold">
+                            <div class="flex items-center gap-1.5">
+                                <input type="text" inputmode="decimal" data-res-idx="${idx}" value="${escapeHtml(item.km_read)}" placeholder="กรอก/ตรวจ..." class="km-edit neu-pill-input ${getKmInputClass(item)} px-3 py-1.5 w-24 text-sm font-metric font-bold">
+                                <span class="text-[11px] font-metric font-bold text-[#56736b]">km.</span>
+                            </div>
                             ${showTripQuickBtn ? `
                                 <button type="button" data-trip-idx="${idx}" class="use-trip-btn neu-btn-secondary px-2.5 py-1 text-[11px] font-bold text-amber-800 hover:text-emerald-700">
                                     ใช้ Trip (${escapeHtml(item.trip_meter)})
@@ -1777,7 +913,10 @@ MANDATORY DOMAIN RULES:
                             ` : ''}
                         </div>
                     </td>
-                    <td class="px-2.5 py-3 text-xs align-top min-w-[180px]">
+                    <td class="px-2.5 py-3 whitespace-nowrap align-top">
+                        <input type="text" data-field="photoSeq" data-res-idx="${idx}" value="${escapeHtml(item.photoSeq)}" placeholder="รูปที่ 1" class="meta-edit neu-pill-input ${seqHighlightClass} px-2.5 py-1.5 w-20 text-xs font-bold text-[#16302b]">
+                    </td>
+                    <td class="px-2.5 py-3 text-xs align-top min-w-[175px]">
                         <div class="flex flex-col gap-1.5">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 ${getStatusPillHtml(item.status)}
@@ -1799,350 +938,42 @@ MANDATORY DOMAIN RULES:
                     if (Number.isNaN(i) || !extractedDataCache[i] || !field) return;
                     const val = e.target.value.trim();
                     extractedDataCache[i][field] = val;
-                    if (field === 'dateStr') {
-                        e.target.classList.toggle('input-warn', !val);
+
+                    if (field === 'photoSeq') {
+                        extractedDataCache[i].photoSeqManual = Boolean(val);
+                    } else {
+                        if (field === 'dateStr') {
+                            e.target.classList.toggle('input-warn', !val);
+                        }
+                        // Recalculate duplicate (ชื่อไรเดอร์, วันที่) sequence numbers live without losing cursor focus
+                        assignSequenceNumbers(extractedDataCache, false);
+                        resultBody.querySelectorAll('input[data-field="photoSeq"]').forEach(seqInput => {
+                            const rowIdx = parseInt(seqInput.dataset.resIdx, 10);
+                            if (!Number.isNaN(rowIdx) && extractedDataCache[rowIdx]) {
+                                const newSeq = extractedDataCache[rowIdx].photoSeq;
+                                seqInput.value = newSeq;
+                                const m = String(newSeq || '').match(/(\d+)/);
+                                seqInput.classList.toggle('input-ok', Boolean(m && parseInt(m[1], 10) >= 2));
+                            }
+                        });
                     }
                 });
             });
-
-            // Bind inline km_read edits
-            resultBody.querySelectorAll('.km-edit').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const i = parseInt(e.target.dataset.resIdx, 10);
-                    if (Number.isNaN(i) || !extractedDataCache[i]) return;
-                    const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-                    extractedDataCache[i].km_read = cleaned;
-                    if (cleaned && extractedDataCache[i].status !== 'TRIP_ONLY') {
-                        extractedDataCache[i].status = 'OK';
-                        extractedDataCache[i].confidence = 'high';
-                    }
-                    e.target.classList.remove('input-ok', 'input-warn', 'input-danger');
-                    e.target.classList.add(getKmInputClass(extractedDataCache[i]));
-                    updateKPIs();
-                });
-            });
-
-            // Bind 1-click "ใช้ Trip (X)" button
-            resultBody.querySelectorAll('.use-trip-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const i = parseInt(e.currentTarget.dataset.tripIdx, 10);
-                    if (Number.isNaN(i) || !extractedDataCache[i]) return;
-                    extractedDataCache[i].km_read = extractedDataCache[i].trip_meter;
-                    renderTable();
-                    updateKPIs();
-                });
-            });
-
-            // Bind thumbnail click -> open Lightbox
-            resultBody.querySelectorAll('.result-thumb').forEach(img => {
-                img.addEventListener('click', (e) => {
-                    const i = parseInt(e.currentTarget.dataset.resIdx, 10);
-                    if (!Number.isNaN(i)) openLightbox('results', i);
-                });
-            });
-        }
-
-        // Copy Thai LINE Retake Notification using parsed rider metadata
-        copyRetakeBtn.addEventListener('click', () => {
-            const flagged = extractedDataCache.filter(item => !isRowOk(item));
-            if (flagged.length === 0) return;
-
-            const lines = [
-                'แจ้งไรเดอร์รบกวนส่งรูปเลขไมล์ (ODO) ใหม่ครับ:',
-                ...flagged.map((item) => {
-                    let reason = item.notes;
-                    if (!reason) {
-                        if (item.status === 'TRIP_ONLY') reason = 'หน้าปัดแสดงเฉพาะ Trip กรุณากดปุ่มสลับเป็น ODO แล้วถ่ายใหม่';
-                        else if (item.status === 'OBSTRUCTED') reason = 'หน้าปัดโดนบังหรือมีแสงสะท้อน อ่านเลขไมล์ไม่ชัดเจน';
-                        else reason = 'ไม่สามารถอ่านเลขไมล์ได้ กรุณาถ่ายให้เห็นตัวเลขชัดเจน';
-                    }
-                    const riderLabel = item.riderName || item.img_name;
-                    const dateLabel = item.dateStr || 'ไม่ระบุวันที่';
-                    const seqLabel = item.photoSeq || 'รูปที่ 1';
-                    return `- ${riderLabel} (${dateLabel} · ${seqLabel}) : ${reason}`;
-                }),
-                '',
-                'ข้อแนะนำ: กดปุ่มให้หน้าปัดแสดงคำว่า ODO และไม่ให้ขาจับมือถือบังหน้าจอครับ'
-            ];
-
-            const copied = copyTextFallback(lines.join('\n'));
-            if (copied) {
-                const orig = copyRetakeLabel.textContent;
-                copyRetakeLabel.textContent = `คัดลอกแล้ว (${flagged.length} รายการ)`;
-                showToast(`คัดลอกข้อความแจ้งถ่ายใหม่ (${flagged.length} รูป) แล้ว`);
-                setTimeout(() => {
-                    copyRetakeLabel.textContent = orig;
-                }, 1800);
-            } else {
-                showError('ไม่สามารถคัดลอกข้อความอัตโนมัติได้ในเบราว์เซอร์นี้');
-            }
-        });
-
-        // iFrame-safe Clipboard Copy using document.execCommand('copy')
-        function copyTextFallback(text) {
-            try {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.setAttribute('readonly', '');
-                ta.style.position = 'fixed';
-                ta.style.top = '-9999px';
-                ta.style.left = '-9999px';
-                document.body.appendChild(ta);
-                ta.select();
-                ta.setSelectionRange(0, ta.value.length);
-                const ok = document.execCommand('copy');
-                document.body.removeChild(ta);
-                return ok;
-            } catch (_) {
-                return false;
-            }
-        }
-
-        // Exact 4-Column UTF-8 BOM CSV Export: ชื่อไรเดอร์,วันที่,รูปที่,km_read
+// ... existing code ... -->
+        // Exact 4-Column UTF-8 BOM CSV Export: ชื่อไรเดอร์,วันที่,เลขไมล์,รูปที่
         exportBtn.addEventListener('click', () => {
             if (extractedDataCache.length === 0) return;
 
-            const header = ['ชื่อไรเดอร์', 'วันที่', 'รูปที่', 'km_read'];
+            const header = ['ชื่อไรเดอร์', 'วันที่', 'เลขไมล์', 'รูปที่'];
             const rows = extractedDataCache.map(item => [
                 item.riderName || item.img_name,
                 item.dateStr || '',
-                item.photoSeq || 'รูปที่ 1',
-                normalizeDigits(item.km_read)
+                formatKmForCsv(item.km_read),
+                item.photoSeq || 'รูปที่ 1'
             ].map(csvEscape).join(','));
 
             const csvString = '\uFEFF' + [header.join(','), ...rows].join('\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            const stamp = new Date().toISOString().slice(0, 10);
-
-            link.setAttribute('href', url);
-            link.setAttribute('download', `fleet_odometer_${stamp}.csv`);
-            link.style.visibility = 'hidden';
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showToast(`ดาวน์โหลด CSV (${extractedDataCache.length} รายการ) เรียบร้อย`);
-        });
-
-        // ============================================================
-        // 6. Interactive Verification Lightbox
-        // ============================================================
-        function openLightbox(mode, idx) {
-            const list = mode === 'results' ? extractedDataCache : uploadedImages;
-            if (!list || idx < 0 || idx >= list.length) return;
-
-            lightboxMode = mode;
-            lightboxIndex = idx;
-            lightboxRotation = 0;
-            lightboxContrastOn = false;
-
-            renderLightboxContent();
-            lightboxModal.classList.remove('hidden');
-            lightboxModal.classList.add('flex');
-        }
-
-        function closeLightbox() {
-            lightboxModal.classList.add('hidden');
-            lightboxModal.classList.remove('flex');
-            lightboxImage.src = '';
-            lightboxIndex = -1;
-        }
-
-        function applyLightboxTransform() {
-            lightboxImage.style.transform = `rotate(${lightboxRotation}deg)`;
-            lightboxImage.classList.toggle('img-contrast-boost', lightboxContrastOn);
-            contrastToggleBtn.classList.toggle('filter-active', lightboxContrastOn);
-        }
-
-        function renderLightboxContent() {
-            const list = lightboxMode === 'results' ? extractedDataCache : uploadedImages;
-            const item = list[lightboxIndex];
-            if (!item) return;
-
-            lightboxImage.src = item.dataUrl;
-            applyLightboxTransform();
-
-            lightboxPrevBtn.disabled = lightboxIndex <= 0;
-            lightboxNextBtn.disabled = lightboxIndex >= list.length - 1;
-
-            if (lightboxMode === 'results') {
-                const riderLabel = item.riderName || item.img_name;
-                const datePart = item.dateStr || 'ไม่ระบุวันที่';
-                const seqPart = item.photoSeq || 'รูปที่ 1';
-                lightboxCaption.textContent = `${riderLabel} · ${datePart} · ${seqPart}`;
-                lightboxSubMeta.textContent = `#${item.no} (${item.img_name}) · รายการที่ ${lightboxIndex + 1} จาก ${list.length}`;
-                lightboxEditBar.classList.remove('hidden');
-                lightboxEditBar.classList.add('flex');
-
-                lightboxKmInput.value = item.km_read || '';
-                lightboxKmInput.classList.remove('input-ok', 'input-warn', 'input-danger');
-                lightboxKmInput.classList.add(getKmInputClass(item));
-
-                if (item.trip_meter && !String(item.km_read || '').trim()) {
-                    lightboxUseTripBtn.textContent = `ใช้ Trip (${item.trip_meter})`;
-                    lightboxUseTripBtn.classList.remove('hidden');
-                } else {
-                    lightboxUseTripBtn.classList.add('hidden');
-                }
-
-                lightboxStatusNote.innerHTML = `
-                    ${getStatusPillHtml(item.status)}
-                    ${getTierBadgeHtml(item)}
-                    ${item.clock_detected ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-metric font-semibold bg-sky-100 text-sky-800">Clock${item.clock_value ? ' ' + escapeHtml(item.clock_value) : ''}</span>` : ''}
-                    ${item.notes ? `<span class="text-[11px] text-[#56736b]">${escapeHtml(item.notes)}</span>` : ''}
-                `;
-            } else {
-                const meta = item.meta || parseFilenameMeta(item.name);
-                const riderLabel = meta.riderName || item.name;
-                const datePart = meta.dateStr || 'ไม่ระบุวันที่';
-                lightboxCaption.textContent = `${riderLabel} · ${datePart} · ${meta.photoSeq}`;
-                lightboxSubMeta.textContent = `${item.name} · รูปในคิวที่ ${lightboxIndex + 1} จาก ${list.length} (${item.width}×${item.height} px)`;
-                lightboxEditBar.classList.add('hidden');
-                lightboxEditBar.classList.remove('flex');
-            }
-        }
-
-        closeLightboxBtn.addEventListener('click', closeLightbox);
-        lightboxModal.addEventListener('click', (e) => {
-            if (e.target === lightboxModal) closeLightbox();
-        });
-
-        rotateLeftBtn.addEventListener('click', () => {
-            lightboxRotation -= 90;
-            applyLightboxTransform();
-        });
-
-        rotateRightBtn.addEventListener('click', () => {
-            lightboxRotation += 90;
-            applyLightboxTransform();
-        });
-
-        contrastToggleBtn.addEventListener('click', () => {
-            lightboxContrastOn = !lightboxContrastOn;
-            applyLightboxTransform();
-        });
-
-        resetViewBtn.addEventListener('click', () => {
-            lightboxRotation = 0;
-            lightboxContrastOn = false;
-            applyLightboxTransform();
-        });
-
-        lightboxPrevBtn.addEventListener('click', () => {
-            if (lightboxIndex > 0) {
-                lightboxIndex--;
-                lightboxRotation = 0;
-                renderLightboxContent();
-            }
-        });
-
-        lightboxNextBtn.addEventListener('click', () => {
-            const list = lightboxMode === 'results' ? extractedDataCache : uploadedImages;
-            if (lightboxIndex < list.length - 1) {
-                lightboxIndex++;
-                lightboxRotation = 0;
-                renderLightboxContent();
-            }
-        });
-
-        // Live-sync edits inside Lightbox directly back to table & state
-        lightboxKmInput.addEventListener('input', (e) => {
-            if (lightboxMode !== 'results' || lightboxIndex < 0 || !extractedDataCache[lightboxIndex]) return;
-            const item = extractedDataCache[lightboxIndex];
-            const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-            item.km_read = cleaned;
-            if (cleaned && item.status !== 'TRIP_ONLY') {
-                item.status = 'OK';
-                item.confidence = 'high';
-            }
-            lightboxKmInput.classList.remove('input-ok', 'input-warn', 'input-danger');
-            lightboxKmInput.classList.add(getKmInputClass(item));
-            renderTable();
-            updateKPIs();
-        });
-
-        lightboxUseTripBtn.addEventListener('click', () => {
-            if (lightboxMode !== 'results' || lightboxIndex < 0 || !extractedDataCache[lightboxIndex]) return;
-            const item = extractedDataCache[lightboxIndex];
-            item.km_read = item.trip_meter;
-            renderLightboxContent();
-            renderTable();
-            updateKPIs();
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (lightboxModal.classList.contains('hidden')) return;
-            if (e.key === 'Escape') {
-                closeLightbox();
-            } else if (document.activeElement !== lightboxKmInput) {
-                if (e.key === 'ArrowLeft') lightboxPrevBtn.click();
-                else if (e.key === 'ArrowRight') lightboxNextBtn.click();
-            }
-        });
-
-        // ============================================================
-        // 7. Utility Helpers & UI State Management
-        // ============================================================
-        function setLoadingState(loading) {
-            isProcessing = loading;
-            processBtn.disabled = loading || uploadedImages.length === 0;
-            fileInput.disabled = loading;
-            clearFilesBtn.disabled = loading;
-            stopBtn.classList.toggle('hidden', !loading);
-            btnSpinner.classList.toggle('hidden', !loading);
-            btnSparkleIcon.classList.toggle('hidden', loading);
-            if (!loading) {
-                btnText.textContent = 'เริ่มอ่านเลขไมล์ด้วย AI';
-            }
-        }
-
-        function showError(msg) {
-            errorText.textContent = msg;
-            errorMessage.classList.remove('hidden');
-        }
-
-        function hideError() {
-            errorMessage.classList.add('hidden');
-            errorText.textContent = '';
-        }
-
-        function showWarning(msg) {
-            warningText.textContent = msg;
-            warningBanner.classList.remove('hidden');
-        }
-
-        function hideWarning() {
-            warningBanner.classList.add('hidden');
-            warningText.textContent = '';
-        }
-
-        function showToast(msg) {
-            toastMessage.textContent = msg;
-            toastBox.classList.remove('hidden');
-            toastBox.classList.add('flex');
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toastBox.classList.add('hidden');
-                toastBox.classList.remove('flex');
-            }, 2600);
-        }
-
-        function escapeHtml(str) {
-            return String(str ?? '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function csvEscape(value) {
-            const str = String(value ?? '').replace(/"/g, '""');
-            return /[",\n\r]/.test(str) ? `"${str}"` : str;
-        }
+// ... existing code ... -->
     </script>
 </body>
 </html>
